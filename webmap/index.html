@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adriatic Bloom Risk — Romagna coast</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-deep:    #0E2A35;
+    --color-sea:     #15616D;
+    --color-sand:    #F4EFE6;
+    --color-coral:   #E8745A;
+    --color-ink:     #1B2B2E;
+    --color-muted:   #5B6B6E;
+    --color-line:    #D9D2C3;
+    --font-display:  'IBM Plex Sans', sans-serif;
+    --font-mono:     'IBM Plex Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: var(--font-display); color: var(--color-ink); background: var(--color-sand); }
+  .app { display: flex; flex-direction: column; height: 100%; }
+  header {
+    background: var(--color-deep); color: var(--color-sand); padding: 14px 22px;
+    display: flex; align-items: baseline; gap: 14px; border-bottom: 3px solid var(--color-sea);
+  }
+  header h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+  header .subtitle { font-size: 12.5px; color: #AFC4C8; font-family: var(--font-mono); }
+  .body { flex: 1; display: flex; min-height: 0; }
+  #map { flex: 1; }
+  aside {
+    width: 288px; background: #fff; border-left: 1px solid var(--color-line);
+    padding: 18px 20px; overflow-y: auto; font-size: 13px;
+  }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); margin: 20px 0 10px; }
+  aside h2:first-child { margin-top: 0; }
+  aside p { color: var(--color-muted); line-height: 1.5; margin: 0 0 16px; }
+  .legend-scale { display: flex; height: 10px; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .legend-scale span { flex: 1; }
+  .legend-labels { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--color-muted); margin-bottom: 16px; }
+  .uncertainty-sample {
+    width: 100%; height: 24px; border-radius: 3px; margin-bottom: 8px;
+    background: repeating-linear-gradient(45deg, var(--color-sea), var(--color-sea) 4px, transparent 4px, transparent 8px);
+    opacity: 0.55;
+  }
+  #info-panel { border-top: 1px solid var(--color-line); padding-top: 16px; margin-top: 8px; }
+  #info-panel .placeholder { color: var(--color-muted); font-style: italic; }
+  .info-row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12.5px; padding: 3px 0; }
+  .info-row .k { color: var(--color-muted); }
+  .info-cell-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+  .badge { display:inline-block; font-family:var(--font-mono); font-size:10px; padding:2px 6px; border-radius:3px; margin-left:6px; vertical-align:middle; }
+  .badge-real { background:#DCEFE4; color:#1B7A4B; }
+  .badge-demo { background:#F0E6DA; color:#9A6A3A; }
+  .leaflet-popup-content-wrapper { border-radius: 6px; font-family: var(--font-display); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Adriatic Bloom Risk — Romagna coast</h1>
+    <span class="subtitle">bloom risk · chlorophyll · uncertainty</span>
+  </header>
+  <div class="body">
+    <div id="map"></div>
+    <aside>
+      <h2>Estimated risk <span class="badge badge-real">model</span></h2>
+      <div class="legend-scale">
+        <span style="background:#1B7A6E"></span><span style="background:#5A9B6E"></span>
+        <span style="background:#C9A227"></span><span style="background:#E8745A"></span>
+      </div>
+      <div class="legend-labels"><span>low</span><span>high</span></div>
+      <p>Colour = risk, i.e. the probability that chlorophyll exceeds the cell's high threshold (LightGBM + conformal model). Hatching = uncertainty.</p>
+
+      <h2>Chlorophyll-a <span class="badge badge-real">real</span></h2>
+      <div class="legend-scale">
+        <span style="background:#C7E9C0"></span><span style="background:#A1D99B"></span>
+        <span style="background:#74C476"></span><span style="background:#31A354"></span><span style="background:#006D2C"></span>
+      </div>
+      <div class="legend-labels"><span>0.3</span><span>&gt;5 mg/m³</span></div>
+      <p>Real Copernicus Marine data. Toggle the layer from the switch at the top-right of the map.</p>
+
+      <h2>Uncertainty</h2>
+      <div class="uncertainty-sample"></div>
+      <p>Hatching = width of the 90% confidence interval: more pronounced = less reliable prediction.</p>
+
+      <div id="info-panel">
+        <p class="placeholder">Select a cell on the map to see the details.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  const map = L.map('map', { zoomControl: true }).setView([44.25, 12.45], 9);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 18,
+  }).addTo(map);
+
+  function riskColor(v) {
+    if (v < 0.25) return '#1B7A6E';
+    if (v < 0.45) return '#5A9B6E';
+    if (v < 0.65) return '#C9A227';
+    return '#E8745A';
+  }
+  // Chlorophyll scale (mg/m^3): light -> dark green = more phytoplankton
+  function chlColor(v) {
+    if (v < 0.5) return '#C7E9C0';
+    if (v < 1.0) return '#A1D99B';
+    if (v < 2.0) return '#74C476';
+    if (v < 5.0) return '#31A354';
+    return '#006D2C';
+  }
+
+  function showRisk(p) {
+    const chl = p.chl_pred != null
+      ? `<div class="info-row"><span class="k">Predicted chlorophyll</span><span>${p.chl_pred.toFixed(2)} mg/m³</span></div>
+         <div class="info-row"><span class="k">Interval (90%)</span><span>${p.chl_lower.toFixed(2)}–${p.chl_upper.toFixed(2)}</span></div>
+         <div class="info-row"><span class="k">Cell threshold</span><span>${p.threshold != null ? p.threshold.toFixed(2)+' mg/m³' : '—'}</span></div>` : '';
+    document.getElementById('info-panel').innerHTML = `
+      <div class="info-cell-name">${p.label} <span class="badge badge-demo">risk</span></div>
+      <div class="info-row"><span class="k">Date</span><span>${p.date}</span></div>
+      <div class="info-row"><span class="k">Risk (P exceed threshold)</span><span>${(p.risk_estimate*100).toFixed(0)}%</span></div>
+      ${chl}
+      <div class="info-row"><span class="k">Model</span><span>${p.model_version || '—'}</span></div>`;
+  }
+  function showChl(p) {
+    document.getElementById('info-panel').innerHTML = `
+      <div class="info-cell-name">${p.label} <span class="badge badge-real">chlorophyll</span></div>
+      <div class="info-row"><span class="k">Date</span><span>${p.date}</span></div>
+      <div class="info-row"><span class="k">Chlorophyll-a</span><span>${p.chl_mean != null ? p.chl_mean.toFixed(2)+' mg/m³' : '—'}</span></div>
+      <div class="info-row"><span class="k">Source</span><span>Copernicus Marine</span></div>`;
+  }
+
+  const overlays = {};
+
+  // RISK layer (model)
+  fetch('/api/risk').then(r => r.json()).then(geo => {
+    const layer = L.geoJSON(geo, {
+      style: f => {
+        const u = f.properties.uncertainty_width;
+        return { color:'#0E2A35', weight:1, fillColor:riskColor(f.properties.risk_estimate),
+                 fillOpacity: Math.max(0.25, 0.85 - u), dashArray: u > 0.25 ? '4 3' : null };
+      },
+      onEachFeature: (f, l) => {
+        l.on('click', () => showRisk(f.properties));
+        l.bindTooltip(`${f.properties.label}: ${(f.properties.risk_estimate*100).toFixed(0)}%`, { sticky:true });
+      },
+    }).addTo(map);
+    overlays['Bloom risk (model)'] = layer;
+    buildControl();
+  });
+
+  // CHLOROPHYLL layer (real) — empty until ingestion has run
+  fetch('/api/chlorophyll').then(r => r.json()).then(geo => {
+    const layer = L.geoJSON(geo, {
+      style: f => ({ color:'#0E2A35', weight:1, fillColor:chlColor(f.properties.chl_mean), fillOpacity:0.8 }),
+      onEachFeature: (f, l) => {
+        l.on('click', () => showChl(f.properties));
+        l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : '—'} mg/m³`, { sticky:true });
+      },
+    });
+    if (geo.features.length) overlays['Chlorophyll-a — Copernicus (real)'] = layer;
+    buildControl();
+  });
+
+  let controlAdded = false;
+  function buildControl() {
+    if (controlAdded || Object.keys(overlays).length === 0) return;
+    controlAdded = true;
+    L.control.layers(null, overlays, { collapsed: false }).addTo(map);
+  }
+
+  fetch('/api/stations').then(r => r.json()).then(geo => {
+    L.geoJSON(geo, {
+      pointToLayer: (f, ll) => L.circleMarker(ll, { radius:4, color:'#0E2A35', fillColor:'#F4EFE6', fillOpacity:1, weight:1.5 }),
+      onEachFeature: (f, l) => l.bindTooltip(f.properties.name),
+    }).addTo(map);
+  }).catch(() => {});
+</script>
+</body>
+</html>
