@@ -1,0 +1,24 @@
+# Ambiente per ingestione, feature engineering e training (eseguito localmente
+# o in CI, non dentro il container dell'API che resta leggero).
+
+pandas==2.2.2
+geopandas==0.14.4
+shapely==2.0.4
+lightgbm==4.5.0
+mapie==0.9.1
+scikit-learn==1.5.1
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.9
+pyarrow==17.0.0
+
+# Ingestione satellitare (Strato 1)
+copernicusmarine==2.4.1
+xarray==2024.10.0
+netCDF4==1.7.1
+
+# Driver da Climate Data Store / Early Warning Data Store (Strato 2b)
+cdsapi>=0.7.4
+
+# Causale (strato 7, secondo livello - installare quando si apre quello strato)
+# econml==0.15.1
+# dowhy==0.11.1
