@@ -5,6 +5,7 @@ plus an uncertainty interval (never a bare number).
 
 from datetime import date
 from typing import Optional
+import os
 
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
@@ -149,4 +150,8 @@ def get_chlorophyll():
 
 # Serve the static Leaflet web map at the root, so the whole system is reachable
 # from a single URL: API under /api/*, map at /.
-app.mount("/", StaticFiles(directory="/app/webmap", html=True), name="webmap")
+# Guarded mount: outside the container (CI, local tests) the directory may not
+# exist, and the API must stay importable and testable regardless.
+_WEBMAP_DIR = os.getenv("WEBMAP_DIR", "/app/webmap")
+if os.path.isdir(_WEBMAP_DIR):
+    app.mount("/", StaticFiles(directory=_WEBMAP_DIR, html=True), name="webmap")

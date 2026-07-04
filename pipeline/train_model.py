@@ -64,7 +64,9 @@ def temporal_split(df):
     else:
         dates = np.sort(df["ts"].unique())
         d1, d2 = dates[int(0.60*len(dates))], dates[int(0.80*len(dates))]
-        train = df[df.ts < d1]; calib = df[(df.ts >= d1) & (df.ts < d2)]; test = df[df.ts >= d2]
+        train = df[df.ts < d1]
+        calib = df[(df.ts >= d1) & (df.ts < d2)]
+        test = df[df.ts >= d2]
         print(f"Split by date (single year) -> train:{len(train)} calib:{len(calib)} test:{len(test)}")
     return train, calib, test
 
