@@ -5,6 +5,8 @@ monitoring to map the **phytoplankton bloom risk** along the Romagna coast (nort
 **quantified uncertainty** on every prediction, and a causal analysis of the
 effect of the Po river discharge on chlorophyll.
 
+> **Technical report:** a working-paper writeup of this project (method, results, honest positioning and limitations) is available at [`docs/technical-report.md`](docs/technical-report.md).
+
 ## Architecture
 
 ```
