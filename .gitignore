@@ -26,3 +26,7 @@ credentials.json
 # ML / logs
 mlruns/
 *.log
+
+# Test artifacts
+.pytest_cache/
+__pycache__/

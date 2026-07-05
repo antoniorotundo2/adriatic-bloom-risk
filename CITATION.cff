@@ -6,11 +6,14 @@ authors:
   - family-names: Rotundo
     given-names: Antonio
     orcid: "https://orcid.org/0009-0002-8777-2080"
-    affiliation: "University of Bologna"
 version: 1.0.0
 date-released: "2026-07-05"
 repository-code: "https://github.com/antoniorotundo2/adriatic-bloom-risk"
 license: MIT
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21208324"
+    description: "Archived snapshot of this software version (v1.0.0) on Zenodo."
 keywords:
   - harmful algal blooms
   - chlorophyll-a

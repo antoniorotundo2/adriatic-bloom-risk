@@ -1,6 +1,6 @@
 # Adriatic Bloom Risk: an operational geospatial system for phytoplankton bloom-risk estimation with quantified uncertainty and a causal analysis of Po river influence on the Romagna coast
 
-**Author:** Antonio Rotundo — MSc student, Computer Science and Engineering, University of Bologna (Cesena Campus)
+**Author:** Antonio Rotundo
 
 **Status:** Independent technical report / working paper (not peer-reviewed).
 
