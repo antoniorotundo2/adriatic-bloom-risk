@@ -1,17 +1,28 @@
+# Python
 __pycache__/
 *.pyc
 .venv/
 venv/
 .env
 
+# Data (raw downloads and processed outputs are not versioned)
 data/raw/
 data/processed/
-*.parquet
-*.csv
+data/**/*.csv
+data/**/*.parquet
+*.nc
 
+# Credentials — never commit secrets
+.cdsapirc
+*.key
+*.pem
+credentials.json
+
+# Editors / OS
 .DS_Store
 .vscode/
 .idea/
 
+# ML / logs
 mlruns/
 *.log

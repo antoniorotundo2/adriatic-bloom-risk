@@ -125,7 +125,7 @@ request it from the ARPAE-Daphne oceanographic unit.
 - [x] Layer 3: LightGBM + conformal, derived risk, real predictions on the map
 - [x] Multi-year scaling: ingestion and features over several seasons, tested on an unseen year
 - [x] Layer 7 (`causal/`): Po effect estimated (Step A transparent + Step B DoWhy with refuters)
-- [ ] Step C (`causal/`): effect heterogeneity and non-stationarity (EconML)
+- [x] Step C (`causal/`): effect heterogeneity via causal forest (EconML) — spatial pattern found (effect concentrated near the Po delta), no interpretable temporal trend
 
 ## UI refinements (TODO)
 

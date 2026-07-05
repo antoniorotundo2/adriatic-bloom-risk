@@ -137,17 +137,14 @@
       <div class="info-row"><span class="k">Source</span><span>Copernicus Marine</span></div>`;
   }
 
-const overlays = {};
+  const overlays = {};
 
-  Promise.all([
-    fetch('/api/risk').then(r => r.json()),
-    fetch('/api/chlorophyll').then(r => r.json()),
-  ]).then(([riskGeo, chlGeo]) => {
-    if (riskGeo.features.length) {
-      document.getElementById('data-date').textContent = riskGeo.features[0].properties.date;
+  // RISK layer (model)
+  fetch('/api/risk').then(r => r.json()).then(geo => {
+    if (geo.features.length) {
+      document.getElementById('data-date').textContent = geo.features[0].properties.date;
     }
-
-    const riskLayer = L.geoJSON(riskGeo, {
+    const layer = L.geoJSON(geo, {
       style: f => {
         const u = f.properties.uncertainty_width;
         return { color:'#0E2A35', weight:1, fillColor:riskColor(f.properties.risk_estimate),
@@ -158,21 +155,29 @@ const overlays = {};
         l.bindTooltip(`${f.properties.label}: ${(f.properties.risk_estimate*100).toFixed(0)}%`, { sticky:true });
       },
     }).addTo(map);
-    overlays['Bloom risk (model)'] = riskLayer;
-
-    if (chlGeo.features.length) {
-      const chlLayer = L.geoJSON(chlGeo, {
-        style: f => ({ color:'#0E2A35', weight:1, fillColor:chlColor(f.properties.chl_mean), fillOpacity:0.8 }),
-        onEachFeature: (f, l) => {
-          l.on('click', () => showChl(f.properties));
-          l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : '—'} mg/m³`, { sticky:true });
-        },
-      });
-      overlays['Chlorophyll-a — Copernicus (real)'] = chlLayer;
-    }
-
-    L.control.layers(null, overlays, { collapsed: false }).addTo(map);
+    overlays['Bloom risk (model)'] = layer;
+    buildControl();
   });
+
+  // CHLOROPHYLL layer (real) — empty until ingestion has run
+  fetch('/api/chlorophyll').then(r => r.json()).then(geo => {
+    const layer = L.geoJSON(geo, {
+      style: f => ({ color:'#0E2A35', weight:1, fillColor:chlColor(f.properties.chl_mean), fillOpacity:0.8 }),
+      onEachFeature: (f, l) => {
+        l.on('click', () => showChl(f.properties));
+        l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : '—'} mg/m³`, { sticky:true });
+      },
+    });
+    if (geo.features.length) overlays['Chlorophyll-a — Copernicus (real)'] = layer;
+    buildControl();
+  });
+
+  let controlAdded = false;
+  function buildControl() {
+    if (controlAdded || Object.keys(overlays).length === 0) return;
+    controlAdded = true;
+    L.control.layers(null, overlays, { collapsed: false }).addTo(map);
+  }
 
   fetch('/api/stations').then(r => r.json()).then(geo => {
     L.geoJSON(geo, {

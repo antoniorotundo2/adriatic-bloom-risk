@@ -73,12 +73,55 @@ controls get stricter, but does not collapse to zero.
 The estimate is consistent across the two approaches and robust to the standard
 refutation tests.
 
+### Heterogeneous effects (Step C, causal forest)
+
+Steps A, A-bis and B all estimate a single average effect. `d_causal_forest.py`
+(CausalForestDML, EconML) asks whether that effect varies spatially (by
+distance to the Po mouth) or temporally (by year), using the same controls as
+Step A-bis (season, wind - SST excluded for the coverage reason above).
+
+**Spatial pattern (the more solid of the two results).** The estimated effect
+decreases monotonically with distance from the Po mouth, and is only
+distinguishable from zero in the two cells closest to the delta:
+
+| Cell | Distance to Po | Effect | 90% CI |
+|---|---|---|---|
+| Casalborsetti | 49 km | +1.75 | (+0.73, +2.77) |
+| Lido Adriano | 60 km | +1.13 | (+0.25, +2.01) |
+| Cesenatico | 84 km | +0.04 | (−0.28, +0.36) |
+| Rimini | 97 km | −0.02 | (−0.16, +0.13) |
+| Cattolica | 111 km | −0.07 | (−0.20, +0.07) |
+
+The Po effect appears concentrated near the delta, where it is statistically
+distinguishable from zero, and fades to statistically indistinguishable from
+zero from Cesenatico southward - consistent with a physical dilution of the
+river's influence with distance. This remains a descriptive pattern over 5
+cells, not a validated general law, but it is directionally coherent and the
+confidence intervals support the qualitative claim (near vs. far).
+
+**Temporal pattern (exploratory, no interpretable trend).** Year-by-year
+estimates do not show a usable trend: confidence intervals are wide,
+especially at the ends of the series (2018: +90% CI −5.37 to +0.81; 2023:
+−0.72 to +2.44), and only 2022 is clearly distinguishable from zero. With 6
+yearly points this is expected: a causal forest needs far more distinct units
+than a linear trend line to say anything reliable about change over time. No
+claim is made here about a link to the documented Adriatic oligotrophication
+trend; the data do not support confirming or ruling it out.
+
+**Additional limitation specific to this step**: unlike Steps A/A-bis/B, no
+formal refutation test was run for the causal forest (EconML supports
+validation approaches, but they were out of scope here). Step C is therefore
+the most exploratory of the four analyses, on top of the small-sample caveat
+already noted.
+
 ## Interpretation
 
 Holding season, temperature and wind fixed, a 1000 m³/s increase in the Po
 discharge is associated, seven days later, with about +3.1 mg/m³ of chlorophyll.
 Over the observed discharge range (~460–3970 m³/s) the effect is of the order of
-10 mg/m³, sizeable relative to the coastal medians.
+10 mg/m³, sizeable relative to the coastal medians. The causal forest (Step C)
+adds a spatial qualification to this average: the effect is concentrated near
+the Po delta and fades with distance, rather than being uniform along the coast.
 
 ## Limitations (to read alongside the results)
 
