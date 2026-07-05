@@ -7,6 +7,10 @@ effect of the Po river discharge on chlorophyll.
 
 > **Technical report:** a working-paper writeup of this project (method, results, honest positioning and limitations) is available at [`docs/technical-report.md`](docs/technical-report.md).
 
+![Web map: per-cell bloom risk and real Copernicus chlorophyll along the Romagna coast](docs/webmap.png)
+
+*Interactive web map: model-estimated bloom risk and real Copernicus Marine chlorophyll-a per coastal cell, with the detail panel showing the prediction, its 90% interval and the cell threshold.*
+
 ## Architecture
 
 ```
@@ -127,8 +131,8 @@ request it from the ARPAE-Daphne oceanographic unit.
 
 Planned web-map polishing, to complete in the refinement phase:
 
-- Show the date of the displayed data on the map.
-- Clarify in the legend that the cells and grid are a demonstrative simplification (not the real transects).
+- [x] Show the date of the displayed data on the map.
+- [x] Clarify in the legend that the cells and grid are a demonstrative simplification (not the real transects).
 - Make the header more informative (data period/coverage).
 
 ## Positioning and limitations

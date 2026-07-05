@@ -40,8 +40,9 @@ but mediators such as stratification are not.
   common to all cells. Stricter control, no extra library cost.
 - **Step B — DoWhy** (`b_dowhy_estimate.py`): explicit DAG, formal identification
   of the adjustment strategy, estimation and refutation tests.
-- **Step C — EconML causal forest** (planned): heterogeneity and non-stationarity
-  of the effect (by coastal sector and by period).
+- **Step C — causal forest** (`d_causal_forest.py`): CausalForestDML (EconML)
+  estimating whether the Po effect varies spatially (by distance to the Po
+  mouth) and temporally (by year), instead of a single average effect.
 
 ## Results (2018–2023 data, 5 coastal cells)
 
@@ -51,9 +52,15 @@ but mediators such as stratification are not.
 | Apparent effect (no controls) | +3.34 mg/m³ per +1000 m³/s |
 | Adjusted effect — Step A (season, SST) | +3.18 mg/m³ per +1000 m³/s |
 | Formal effect — Step B, DoWhy (season, SST, wind) | +3.14 mg/m³ per +1000 m³/s |
+| Fixed-effects effect — Step A-bis (season, wind, cell + year dummies) | +2.34 mg/m³ per +1000 m³/s |
 
 Seasonal and thermal confounders explain only ~5% of the apparent effect: the
-Po -> chlorophyll link is not a seasonal artefact.
+Po -> chlorophyll link is not a seasonal artefact. The effect survives an even
+stricter test: adjusting for cell and year fixed effects - which absorb any
+time-invariant trait of each cell and any shock common to all cells in a given
+year - still leaves a positive, significant estimate (+2.34, an 8% reduction
+from the pooled estimate using the same confounders). The estimate narrows as
+controls get stricter, but does not collapse to zero.
 
 ### Robustness tests (Step B)
 
@@ -85,6 +92,14 @@ Over the observed discharge range (~460–3970 m³/s) the effect is of the order
   estimate is more reliable than its stated precision.
 - **Linear form** and fine scale (5 cells, 6 seasons): indicative, not
   definitive. Extending to more cells and years would strengthen it.
+- **SST data coverage**: the nearest-pixel SST retrieval is valid for only 2 of
+  the 5 cells across all six seasons (the other three fall on a masked/land
+  pixel in this reprocessed product) - not missing at random, but a systematic
+  gap tied to the grid-coastline alignment. Including SST as a confounder would
+  silently shrink any analysis to those 2 cells; Step A-bis therefore uses
+  season and wind (both complete across all 5 cells) instead. Steps A and B,
+  which do include SST, are consequently estimated on a smaller effective
+  sample than Step A-bis.
 
 Correct phrasing of the results: *effect estimated and robust under the declared
 assumptions*, not *causal effect proven*.
