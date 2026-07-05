@@ -29,15 +29,19 @@ Stratification (mediator) -- not adjusted (total effect)
 For the **total** effect of the Po the confounders (backdoor paths) are adjusted,
 but mediators such as stratification are not.
 
-## Method (three steps)
+## Method (four steps)
 
 - **Step A — transparent estimate** (`a_transparent_estimate.py`): regression
   with and without controls, to show how much of the apparent Po-chlorophyll
   link is actually season. Linear, readable line by line.
+- **Step A-bis — fixed-effects robustness check** (`c_fixed_effects.py`): a
+  two-way fixed-effects regression (cell and year dummies) adjusting for
+  unobserved, time-invariant per-cell confounders and year-specific shocks
+  common to all cells. Stricter control, no extra library cost.
 - **Step B — DoWhy** (`b_dowhy_estimate.py`): explicit DAG, formal identification
   of the adjustment strategy, estimation and refutation tests.
-- **Step C — EconML** (planned): heterogeneity and non-stationarity of the effect
-  (by coastal sector and by period).
+- **Step C — EconML causal forest** (planned): heterogeneity and non-stationarity
+  of the effect (by coastal sector and by period).
 
 ## Results (2018–2023 data, 5 coastal cells)
 

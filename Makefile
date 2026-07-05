@@ -36,6 +36,7 @@ train:
 # Run the causal analysis (Step A: transparent, Step B: DoWhy)
 causal:
 	.venv/bin/python causal/a_transparent_estimate.py
+	.venv/bin/python causal/c_fixed_effects.py
 	.venv/bin/python causal/b_dowhy_estimate.py
 
 # Run the test suite
