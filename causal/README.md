@@ -34,13 +34,13 @@ but mediators such as stratification are not.
 - **Step A — transparent estimate** (`a_transparent_estimate.py`): regression
   with and without controls, to show how much of the apparent Po-chlorophyll
   link is actually season. Linear, readable line by line.
-- **Step A-bis — fixed-effects robustness check** (`c_fixed_effects.py`): a
+- **Step B — fixed-effects robustness check** (`b_fixed_effects.py`): a
   two-way fixed-effects regression (cell and year dummies) adjusting for
   unobserved, time-invariant per-cell confounders and year-specific shocks
   common to all cells. Stricter control, no extra library cost.
-- **Step B — DoWhy** (`b_dowhy_estimate.py`): explicit DAG, formal identification
+- **Step C — DoWhy** (`c_dowhy_estimate.py`): explicit DAG, formal identification
   of the adjustment strategy, estimation and refutation tests.
-- **Step C — causal forest** (`d_causal_forest.py`): CausalForestDML (EconML)
+- **Step D — causal forest** (`d_causal_forest.py`): CausalForestDML (EconML)
   estimating whether the Po effect varies spatially (by distance to the Po
   mouth) and temporally (by year), instead of a single average effect.
 
@@ -51,8 +51,8 @@ but mediators such as stratification are not.
 | Raw correlation (Po t-7 vs chlorophyll) | r = 0.42 |
 | Apparent effect (no controls) | +3.34 mg/m³ per +1000 m³/s |
 | Adjusted effect — Step A (season, SST) | +3.18 mg/m³ per +1000 m³/s |
-| Formal effect — Step B, DoWhy (season, SST, wind) | +3.14 mg/m³ per +1000 m³/s |
-| Fixed-effects effect — Step A-bis (season, wind, cell + year dummies) | +2.34 mg/m³ per +1000 m³/s |
+| Formal effect — Step C, DoWhy (season, SST, wind) | +3.14 mg/m³ per +1000 m³/s |
+| Fixed-effects effect — Step B (season, wind, cell + year dummies) | +2.34 mg/m³ per +1000 m³/s |
 
 Seasonal and thermal confounders explain only ~5% of the apparent effect: the
 Po -> chlorophyll link is not a seasonal artefact. The effect survives an even
@@ -62,7 +62,7 @@ year - still leaves a positive, significant estimate (+2.34, an 8% reduction
 from the pooled estimate using the same confounders). The estimate narrows as
 controls get stricter, but does not collapse to zero.
 
-### Robustness tests (Step B)
+### Robustness tests (Step C)
 
 | Refuter | Expected | Result |
 |---|---|---|
@@ -73,12 +73,12 @@ controls get stricter, but does not collapse to zero.
 The estimate is consistent across the two approaches and robust to the standard
 refutation tests.
 
-### Heterogeneous effects (Step C, causal forest)
+### Heterogeneous effects (Step D, causal forest)
 
-Steps A, A-bis and B all estimate a single average effect. `d_causal_forest.py`
+Steps A, B and C all estimate a single average effect. `d_causal_forest.py`
 (CausalForestDML, EconML) asks whether that effect varies spatially (by
 distance to the Po mouth) or temporally (by year), using the same controls as
-Step A-bis (season, wind - SST excluded for the coverage reason above).
+Step B (season, wind - SST excluded for the coverage reason above).
 
 **Spatial pattern (the more solid of the two results).** The estimated effect
 decreases monotonically with distance from the Po mouth, and is only
@@ -108,9 +108,9 @@ than a linear trend line to say anything reliable about change over time. No
 claim is made here about a link to the documented Adriatic oligotrophication
 trend; the data do not support confirming or ruling it out.
 
-**Additional limitation specific to this step**: unlike Steps A/A-bis/B, no
+**Additional limitation specific to this step**: unlike Steps A/B/C, no
 formal refutation test was run for the causal forest (EconML supports
-validation approaches, but they were out of scope here). Step C is therefore
+validation approaches, but they were out of scope here). Step D is therefore
 the most exploratory of the four analyses, on top of the small-sample caveat
 already noted.
 
@@ -119,7 +119,7 @@ already noted.
 Holding season, temperature and wind fixed, a 1000 m³/s increase in the Po
 discharge is associated, seven days later, with about +3.1 mg/m³ of chlorophyll.
 Over the observed discharge range (~460–3970 m³/s) the effect is of the order of
-10 mg/m³, sizeable relative to the coastal medians. The causal forest (Step C)
+10 mg/m³, sizeable relative to the coastal medians. The causal forest (Step D)
 adds a spatial qualification to this average: the effect is concentrated near
 the Po delta and fades with distance, rather than being uniform along the coast.
 
@@ -139,10 +139,10 @@ the Po delta and fades with distance, rather than being uniform along the coast.
   the 5 cells across all six seasons (the other three fall on a masked/land
   pixel in this reprocessed product) - not missing at random, but a systematic
   gap tied to the grid-coastline alignment. Including SST as a confounder would
-  silently shrink any analysis to those 2 cells; Step A-bis therefore uses
+  silently shrink any analysis to those 2 cells; Step B therefore uses
   season and wind (both complete across all 5 cells) instead. Steps A and B,
   which do include SST, are consequently estimated on a smaller effective
-  sample than Step A-bis.
+  sample than Step B.
 
 Correct phrasing of the results: *effect estimated and robust under the declared
 assumptions*, not *causal effect proven*.

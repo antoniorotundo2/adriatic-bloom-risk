@@ -1,7 +1,7 @@
 """
 Causal layer - Step C: heterogeneous effects with a causal forest (EconML).
 
-Steps A, A-bis and B all estimate a SINGLE average effect of Po discharge on
+Steps A, B and C all estimate a SINGLE average effect of Po discharge on
 chlorophyll. This step asks a more ambitious question: does that effect VARY?
 
   - Spatially: is the Po effect stronger near the delta (Casalborsetti) and
@@ -14,7 +14,7 @@ to remove the influence of confounders, but instead of one coefficient it
 fits a flexible model of how the treatment effect varies with chosen
 "heterogeneity" variables (here: distance to the Po mouth, and year).
 
-Confounders (W): season (cyclic) and wind - the same choice as Step A-bis,
+Confounders (W): season (cyclic) and wind - the same choice as Step B,
 and for the same documented reason: SST has valid coverage for only 2 of the
 5 cells in this dataset, and including it would silently shrink this analysis
 to those 2 cells (see causal/README.md, Limitations).
@@ -38,7 +38,7 @@ FEATURES_CSV = "data/processed/features.csv"
 
 TREATMENT = "po_discharge_lag7"
 OUTCOME = "chl"
-CONTROLS = ["doy_sin", "doy_cos", "wind_speed"]   # W: same choice as Step A-bis (SST excluded, see note above)
+CONTROLS = ["doy_sin", "doy_cos", "wind_speed"]   # W: same choice as Step B (SST excluded, see note above)
 HETEROGENEITY = ["dist_po_km", "year_num"]         # X: what the effect is allowed to vary with
 
 

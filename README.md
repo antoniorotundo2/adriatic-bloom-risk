@@ -1,6 +1,8 @@
 # Adriatic Bloom Risk — Romagna coast
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21204039.svg)](https://doi.org/10.5281/zenodo.21204039)
+[![CI](https://github.com/antoniorotundo2/adriatic-bloom-risk/actions/workflows/ci.yml/badge.svg)](https://github.com/antoniorotundo2/adriatic-bloom-risk/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A geospatial information system that combines free satellite data and in-situ
 monitoring to map the **phytoplankton bloom risk** along the Romagna coast (northern Adriatic), with
@@ -15,26 +17,14 @@ effect of the Po river discharge on chlorophyll.
 
 ## Architecture
 
-```
-Sentinel-2/3, Copernicus Marine, ERA5, Po discharge (all public)
-        |
-        v
-Feature pipeline (xarray, geopandas)
-        |
-        v
-Predictive model (LightGBM + conformal prediction)
-   +-- point estimate + confidence interval, always together
-        |
-        v
-PostGIS  (coastal cells, stations, predictions with native uncertainty)
-        |
-        v
-FastAPI  (/api/risk, /api/stations, /api/chlorophyll -> GeoJSON)
-        |
-        v
-Leaflet web map (colour = risk, hatching = uncertainty)
-
-causal/  (Step A: transparent estimate, Step B: DoWhy) - effect of the Po
+```mermaid
+flowchart TD
+    A["Public data sources<br/>Copernicus Marine · ERA5 · GloFAS"] --> B["Feature pipeline<br/>xarray, geopandas"]
+    B --> C["Predictive model<br/>LightGBM + conformal prediction<br/>(point estimate + confidence interval, always together)"]
+    C --> D["PostGIS<br/>coastal cells, stations, predictions with native uncertainty"]
+    D --> E["FastAPI<br/>/api/risk · /api/stations · /api/chlorophyll → GeoJSON"]
+    E --> F["Leaflet web map<br/>colour = risk, hatching = uncertainty"]
+    B --> G["Causal layer (causal/)<br/>A: transparent estimate · B: fixed effects<br/>C: DoWhy + refuters · D: causal forest"]
 ```
 
 ## Requirements
