@@ -28,6 +28,7 @@
   }
   header h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
   header .subtitle { font-size: 12.5px; color: #AFC4C8; font-family: var(--font-mono); }
+  header .subtitle + .subtitle::before { content: "· data shown: "; }
   .body { flex: 1; display: flex; min-height: 0; }
   #map { flex: 1; }
   aside {
@@ -61,6 +62,7 @@
   <header>
     <h1>Adriatic Bloom Risk — Romagna coast</h1>
     <span class="subtitle">bloom risk · chlorophyll · uncertainty</span>
+    <span class="subtitle" id="data-date"></span>
   </header>
   <div class="body">
     <div id="map"></div>
@@ -72,6 +74,7 @@
       </div>
       <div class="legend-labels"><span>low</span><span>high</span></div>
       <p>Colour = risk, i.e. the probability that chlorophyll exceeds the cell's high threshold (LightGBM + conformal model). Hatching = uncertainty.</p>
+      <p style="font-style: italic;">Note: the five square cells are a simplified demonstration grid, not the official monitoring transects.</p>
 
       <h2>Chlorophyll-a <span class="badge badge-real">real</span></h2>
       <div class="legend-scale">
@@ -134,11 +137,17 @@
       <div class="info-row"><span class="k">Source</span><span>Copernicus Marine</span></div>`;
   }
 
-  const overlays = {};
+const overlays = {};
 
-  // RISK layer (model)
-  fetch('/api/risk').then(r => r.json()).then(geo => {
-    const layer = L.geoJSON(geo, {
+  Promise.all([
+    fetch('/api/risk').then(r => r.json()),
+    fetch('/api/chlorophyll').then(r => r.json()),
+  ]).then(([riskGeo, chlGeo]) => {
+    if (riskGeo.features.length) {
+      document.getElementById('data-date').textContent = riskGeo.features[0].properties.date;
+    }
+
+    const riskLayer = L.geoJSON(riskGeo, {
       style: f => {
         const u = f.properties.uncertainty_width;
         return { color:'#0E2A35', weight:1, fillColor:riskColor(f.properties.risk_estimate),
@@ -149,29 +158,21 @@
         l.bindTooltip(`${f.properties.label}: ${(f.properties.risk_estimate*100).toFixed(0)}%`, { sticky:true });
       },
     }).addTo(map);
-    overlays['Bloom risk (model)'] = layer;
-    buildControl();
-  });
+    overlays['Bloom risk (model)'] = riskLayer;
 
-  // CHLOROPHYLL layer (real) — empty until ingestion has run
-  fetch('/api/chlorophyll').then(r => r.json()).then(geo => {
-    const layer = L.geoJSON(geo, {
-      style: f => ({ color:'#0E2A35', weight:1, fillColor:chlColor(f.properties.chl_mean), fillOpacity:0.8 }),
-      onEachFeature: (f, l) => {
-        l.on('click', () => showChl(f.properties));
-        l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : '—'} mg/m³`, { sticky:true });
-      },
-    });
-    if (geo.features.length) overlays['Chlorophyll-a — Copernicus (real)'] = layer;
-    buildControl();
-  });
+    if (chlGeo.features.length) {
+      const chlLayer = L.geoJSON(chlGeo, {
+        style: f => ({ color:'#0E2A35', weight:1, fillColor:chlColor(f.properties.chl_mean), fillOpacity:0.8 }),
+        onEachFeature: (f, l) => {
+          l.on('click', () => showChl(f.properties));
+          l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : '—'} mg/m³`, { sticky:true });
+        },
+      });
+      overlays['Chlorophyll-a — Copernicus (real)'] = chlLayer;
+    }
 
-  let controlAdded = false;
-  function buildControl() {
-    if (controlAdded || Object.keys(overlays).length === 0) return;
-    controlAdded = true;
     L.control.layers(null, overlays, { collapsed: false }).addTo(map);
-  }
+  });
 
   fetch('/api/stations').then(r => r.json()).then(geo => {
     L.geoJSON(geo, {
