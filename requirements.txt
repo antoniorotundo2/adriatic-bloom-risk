@@ -1,7 +1,9 @@
-# Ambiente per ingestione, feature engineering e training (eseguito localmente
-# o in CI, non dentro il container dell'API che resta leggero).
+# Environment for ingestion, feature engineering, training and the causal
+# layer (run locally or in CI; not installed inside the lightweight API
+# container, which only needs api/requirements-api.txt).
 
 pandas==2.2.2
+numpy>=1.26.0
 geopandas==0.14.4
 shapely==2.0.4
 lightgbm==4.5.0
@@ -11,14 +13,16 @@ sqlalchemy==2.0.35
 psycopg2-binary==2.9.9
 pyarrow==17.0.0
 
-# Ingestione satellitare (Strato 1)
+# Satellite and reanalysis ingestion (Step 1 / Step 2b)
 copernicusmarine==2.4.1
-xarray==2024.10.0
-netCDF4==1.7.1
-
-# Driver da Climate Data Store / Early Warning Data Store (Strato 2b)
+xarray>=2024.10.0
+netCDF4>=1.7.1
 cdsapi>=0.7.4
 
-# Causale (strato 7, secondo livello - installare quando si apre quello strato)
-# econml==0.15.1
-# dowhy==0.11.1
+# API framework (used by tests importing api/main.py outside the container)
+fastapi>=0.115.0
+
+# Causal layer (causal/)
+statsmodels>=0.14
+dowhy>=0.12
+econml>=0.16       # Step C: heterogeneity / non-stationarity (CausalForestDML)
