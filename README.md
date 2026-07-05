@@ -1,11 +1,13 @@
 # Adriatic Bloom Risk — Romagna coast
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21204039.svg)](https://doi.org/10.5281/zenodo.21204039)
+
 A geospatial information system that combines free satellite data and in-situ
 monitoring to map the **phytoplankton bloom risk** along the Romagna coast (northern Adriatic), with
 **quantified uncertainty** on every prediction, and a causal analysis of the
 effect of the Po river discharge on chlorophyll.
 
-> **Technical report:** a working-paper writeup of this project (method, results, honest positioning and limitations) is available at [`docs/technical-report.md`](docs/technical-report.md).
+> **Technical report:** a working-paper writeup of this project (method, results, honest positioning and limitations) is available at [`docs/technical-report.md`](docs/technical-report.md), and as a citable preprint on Zenodo (DOI above).
 
 ![Web map: per-cell bloom risk and real Copernicus chlorophyll along the Romagna coast](docs/webmap.png)
 
