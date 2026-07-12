@@ -22,7 +22,7 @@ jobs:
           pip install ruff pytest fastapi sqlalchemy psycopg2-binary httpx
 
       - name: Lint (ruff)
-        run: ruff check api/ pipeline/ tests/
+        run: ruff check api/ pipeline/ tests/ causal/
 
       - name: Run tests
         run: pytest tests/ -v
