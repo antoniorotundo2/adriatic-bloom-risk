@@ -1,5 +1,5 @@
 """
-Causal layer - Step C: heterogeneous effects with a causal forest (EconML).
+Causal layer - Step D: heterogeneous effects with a causal forest (EconML).
 
 Steps A, B and C all estimate a SINGLE average effect of Po discharge on
 chlorophyll. This step asks a more ambitious question: does that effect VARY?

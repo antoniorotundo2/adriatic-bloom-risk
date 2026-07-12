@@ -62,6 +62,17 @@ year - still leaves a positive, significant estimate (+2.34, an 8% reduction
 from the pooled estimate using the same confounders). The estimate narrows as
 controls get stricter, but does not collapse to zero.
 
+**Cluster-robust check on Step B (2018-2023 run).** The 95% CI reported above
+for Step B uses classical (iid-errors) standard errors, which ignore that Po
+discharge and chlorophyll are autocorrelated within each cell over time.
+Re-estimating the same model with standard errors clustered by cell widens the
+interval from (+2.13, +2.54) to (+1.87, +2.81) - **+131% wider** - but the
+conclusion is unchanged: the effect stays positive and distinguishable from
+zero. With only 5 clusters the clustered interval is itself an approximation
+(few-cluster asymptotics are unreliable below ~20-30 clusters), so read this as
+a directional confirmation that the classical CI understates uncertainty, not
+as a more precise replacement for it.
+
 ### Robustness tests (Step C)
 
 | Refuter | Expected | Result |
@@ -132,7 +143,11 @@ the Po delta and fades with distance, rather than being uniform along the coast.
   inference.
 - **Temporal autocorrelation**: discharge and chlorophyll are autocorrelated
   series; standard confidence intervals tend to be too narrow. The point
-  estimate is more reliable than its stated precision.
+  estimate is more reliable than its stated precision. Quantified for Step B:
+  clustering standard errors by cell widens its 95% CI by +131% (see the
+  cluster-robust check above) without changing the qualitative conclusion -
+  consistent with the narrowness being real but not large enough to overturn
+  the result, at least for this check.
 - **Linear form** and fine scale (5 cells, 6 seasons): indicative, not
   definitive. Extending to more cells and years would strengthen it.
 - **SST data coverage**: the nearest-pixel SST retrieval is valid for only 2 of

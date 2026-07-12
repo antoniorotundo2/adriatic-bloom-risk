@@ -1,5 +1,5 @@
 """
-Layer 7 (causal) - Step B: formal reasoning with DoWhy.
+Layer 7 (causal) - Step C: formal reasoning with DoWhy.
 
 Same problem as Step A (effect of Po on chlorophyll), but through DoWhy's
 rigorous four-step causal workflow:
@@ -17,7 +17,7 @@ rigorous four-step causal workflow:
 Reading: if placebo ~0 and the other two leave the estimate almost unchanged,
 the result is robust. Otherwise, it must be reported as fragile.
 
-Run:  python causal/b_dowhy_estimate.py
+Run:  python causal/c_dowhy_estimate.py
 """
 
 import pandas as pd
@@ -105,7 +105,7 @@ def main():
     print("unobserved confounding, correct form). Refuters test robustness, they")
     print("do not prove causality. Confounders not included (currents, other")
     print("rivers) and temporal autocorrelation remain limits to declare.")
-    print("Step C (EconML) will estimate the heterogeneity of the effect.")
+    print("Step D (EconML) will estimate the heterogeneity of the effect.")
 
 
 if __name__ == "__main__":

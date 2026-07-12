@@ -13,7 +13,7 @@ Transparent method (no black box): we compare three things, in order.
 The comparison between step 2 and step 3 IS the story: it shows how much of the
 apparent Po-chlorophyll link was actually season.
 
-Honest note: this is a transparent but linear estimate; Step B (DoWhy) will
+Honest note: this is a transparent but linear estimate; Step C (DoWhy) will
 formalise the reasoning with a DAG, identification and refuters.
 
 Run:  python causal/a_transparent_estimate.py
@@ -76,7 +76,7 @@ def main():
         print("-> Adjusted, the Po effect is NOT statistically distinguishable from zero:")
         print("   most of the apparent link was season. Honest and informative result.")
 
-    print("\nNote: linear, transparent estimate. Step B (DoWhy) formalises the")
+    print("\nNote: linear, transparent estimate. Step C (DoWhy) formalises the")
     print("DAG, identification and robustness tests (refuters).")
 
 

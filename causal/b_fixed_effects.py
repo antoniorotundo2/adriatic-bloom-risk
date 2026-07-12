@@ -2,8 +2,8 @@
 Causal layer - Step B: two-way fixed-effects robustness check.
 
 Adds a stronger, still fully transparent control on top of Step A (transparent
-estimate) and Step B (DoWhy): a two-way fixed-effects regression that adjusts
-for confounders we did NOT explicitly model.
+estimate): a two-way fixed-effects regression that adjusts for confounders we
+did NOT explicitly model. Step C (DoWhy) formalises the reasoning separately.
 
 Idea: include one dummy variable per cell and one per year. This absorbs:
   - everything constant over time within a cell (bathymetry, distance to
@@ -18,10 +18,9 @@ cheap answer to the "unobserved confounding" limitation stated in Steps A/B.
 This does not require any new library: it is an OLS regression with
 categorical (dummy) variables, using statsmodels (already a dependency).
 
-RUN:  python causal/c_fixed_effects.py
+RUN:  python causal/b_fixed_effects.py
 """
 
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 
@@ -65,19 +64,42 @@ def main():
     b_fe = fe_model.params["po_k"]
     ci_fe = fe_model.conf_int().loc["po_k"]
 
+    # --- Same model, cluster-robust SEs (by cell) ---------------------------
+    # Po discharge and chlorophyll are autocorrelated within a cell over time,
+    # which the classical (iid-errors) OLS covariance above ignores and tends
+    # to understate. Clustering by cell relaxes the independence assumption
+    # within each cell's time series while still assuming independence across
+    # cells (fine here: cells are spatially distinct coastal transects).
+    fe_model_clustered = smf.ols(formula, data=df).fit(
+        cov_type="cluster", cov_kwds={"groups": df["cell_code"]}
+    )
+    ci_fe_c = fe_model_clustered.conf_int().loc["po_k"]
+
     print("\n=== Po effect: pooled OLS vs two-way fixed effects ===")
     print(f"  Pooled (Step A-style):      {b_pooled:+.3f} mg/m^3 per +1000 m^3/s   "
           f"(95% CI: {ci_pooled[0]:+.3f}, {ci_pooled[1]:+.3f})")
     print(f"  Cell + year fixed effects:  {b_fe:+.3f} mg/m^3 per +1000 m^3/s   "
-          f"(95% CI: {ci_fe[0]:+.3f}, {ci_fe[1]:+.3f})")
+          f"(95% CI: {ci_fe[0]:+.3f}, {ci_fe[1]:+.3f})  [classical SE]")
+    print(f"  Cell + year fixed effects:  {b_fe:+.3f} mg/m^3 per +1000 m^3/s   "
+          f"(95% CI: {ci_fe_c[0]:+.3f}, {ci_fe_c[1]:+.3f})  [cluster-robust SE, by cell]")
+
+    width_classical = ci_fe[1] - ci_fe[0]
+    width_clustered = ci_fe_c[1] - ci_fe_c[0]
+    widening_pct = 100 * (width_clustered - width_classical) / width_classical
+    print(f"\n  Interval width, classical vs clustered: {width_classical:.3f} -> "
+          f"{width_clustered:.3f} mg/m^3 ({widening_pct:+.0f}%)")
+    print("  Only 5 clusters (cells): the cluster-robust CI is itself approximate")
+    print("  (few-cluster asymptotics are unreliable below ~20-30 clusters) - read as")
+    print("  a directional check on how much the classical CI understates uncertainty,")
+    print("  not as a definitive interval.")
 
     delta_pct = 100 * (b_fe - b_pooled) / b_pooled
     print(f"\n  Change from adding fixed effects: {delta_pct:+.1f}%")
-    if ci_fe[0] > 0:
+    if ci_fe_c[0] > 0:
         print("  -> The Po effect survives this much stricter control: still positive")
         print("     and significant net of any time-invariant cell traits and any")
         print("     year-specific shock common to all cells.")
-    elif ci_fe[1] < 0:
+    elif ci_fe_c[1] < 0:
         print("  -> Under fixed effects the estimated effect turns negative/significant.")
         print("     This warrants a closer look before trusting the pooled estimate.")
     else:
