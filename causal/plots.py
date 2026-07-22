@@ -11,6 +11,8 @@ script prints.
      clustered, C), with 95% CI - the convergence story from causal/README.md.
   3. Spatial heterogeneity (Step D): effect vs distance to the Po mouth.
   4. Temporal heterogeneity (Step D): effect by year.
+  5. System architecture diagram (static redraw of the Mermaid flowchart in
+     the main README, for the PDF/Zenodo export where Mermaid doesn't render).
 
 Run (after `make features` and with the Step A-D data already computable):
   python causal/plots.py
@@ -22,6 +24,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.patches import FancyBboxPatch
 
 import a_transparent_estimate as step_a
 import b_fixed_effects as step_b
@@ -146,22 +149,70 @@ def fig_temporal_heterogeneity(years):
     plt.close(fig)
 
 
+def fig_architecture():
+    """Static redraw of the Mermaid flowchart in the main README (system
+    architecture). Kept in sync by hand if that diagram changes - there are
+    only 7 boxes, so this is simpler than round-tripping through a headless
+    Mermaid renderer just for a PDF export."""
+    # (x, y, label, width, height)
+    boxes = {
+        "A": (5.5, 10.1, "Public data sources\nCopernicus Marine · ERA5 · GloFAS", 4.6, 0.9),
+        "B": (5.5, 8.5, "Feature pipeline\nxarray, geopandas", 3.2, 0.9),
+        "C": (3.7, 6.6, "Predictive model\nLightGBM + conformal prediction\n(point estimate + CI, always together)", 5.8, 1.15),
+        "D": (3.7, 4.7, "PostGIS\ncoastal cells, stations, predictions\nwith native uncertainty", 5.8, 1.0),
+        "E": (3.7, 2.9, "FastAPI\n/api/risk · /api/stations · /api/chlorophyll → GeoJSON", 5.8, 0.9),
+        "F": (3.7, 1.1, "Leaflet web map\ncolour = risk, hatching = uncertainty", 4.8, 0.9),
+        "G": (9.0, 6.6, "Causal layer (causal/)\nA: transparent · B: fixed effects\nC: DoWhy + refuters · D: causal forest", 4.8, 1.15),
+    }
+
+    fig, ax = plt.subplots(figsize=(9.5, 8))
+    ax.set_xlim(0, 12)
+    ax.set_ylim(0, 11)
+    ax.axis("off")
+
+    for x, y, label, w, h in boxes.values():
+        box = FancyBboxPatch((x - w / 2, y - h / 2), w, h,
+                              boxstyle="round,pad=0.06,rounding_size=0.1",
+                              linewidth=1.2, edgecolor="#9370DB", facecolor="#ECECFF")
+        ax.add_patch(box)
+        ax.text(x, y, label, ha="center", va="center", fontsize=9)
+
+    edges = [("A", "B"), ("B", "C"), ("C", "D"), ("D", "E"), ("E", "F"), ("B", "G")]
+    for src, dst in edges:
+        xs, ys, _, ws, hs = boxes[src]
+        xd, yd, _, wd, hd = boxes[dst]
+        if src == "B" and dst == "G":
+            start, end, rad = (xs + ws / 2, ys - 0.1), (xd, yd + hd / 2), -0.25
+        else:
+            start, end, rad = (xs, ys - hs / 2), (xd, yd + hd / 2), 0
+        ax.annotate("", xy=end, xytext=start,
+                    arrowprops=dict(arrowstyle="-|>", color="#333333", lw=1.3,
+                                     connectionstyle=f"arc3,rad={rad}"))
+
+    fig.tight_layout()
+    fig.savefig(f"{OUT_DIR}/architecture_diagram.png", dpi=150)
+    plt.close(fig)
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
-    print("Figure 1/4: chlorophyll gradient...")
+    print("Figure 1/5: system architecture...")
+    fig_architecture()
+
+    print("Figure 2/5: chlorophyll gradient...")
     fig_chlorophyll_gradient()
 
-    print("Figure 2/4: causal effect comparison...")
+    print("Figure 3/5: causal effect comparison...")
     fig_causal_effects()
 
-    print("Figure 3/4 & 4/4: heterogeneity (fitting the causal forest)...")
+    print("Figure 4/5 & 5/5: heterogeneity (fitting the causal forest)...")
     df = step_d.load()
     cells, years = step_d.fit_and_get_effects(df)
     fig_spatial_heterogeneity(cells)
     fig_temporal_heterogeneity(years)
 
-    print(f"\nWrote 4 figures to {OUT_DIR}/")
+    print(f"\nWrote 5 figures to {OUT_DIR}/")
 
 
 if __name__ == "__main__":

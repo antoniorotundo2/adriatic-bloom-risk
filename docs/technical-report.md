@@ -49,17 +49,9 @@ In-situ chemical-physical series from ARPAE-Daphne (temperature, chlorophyll-a, 
 
 The system is containerised (Docker Compose) and comprises a PostgreSQL/PostGIS spatial database, a FastAPI service exposing GeoJSON endpoints, and a Leaflet web map. Ingestion, feature engineering, model training and the causal analysis are Python scripts run against the database. The design is data-source-agnostic: each source is a replaceable node, so the system runs on public data and can incorporate additional sources without structural change.
 
-```mermaid
-flowchart TD
-    A["Public data sources<br/>Copernicus Marine · ERA5 · GloFAS"] --> B["Feature pipeline<br/>xarray, geopandas"]
-    B --> C["Predictive model<br/>LightGBM + conformal prediction<br/>(point estimate + confidence interval, always together)"]
-    C --> D["PostGIS<br/>coastal cells, stations, predictions with native uncertainty"]
-    D --> E["FastAPI<br/>/api/risk · /api/stations · /api/chlorophyll → GeoJSON"]
-    E --> F["Leaflet web map<br/>colour = risk, hatching = uncertainty"]
-    B --> G["Causal layer (causal/)<br/>A: transparent estimate · B: fixed effects<br/>C: DoWhy + refuters · D: causal forest"]
-```
+![System architecture: from public data sources to the served web map, with the causal layer branching off the shared feature pipeline](figures/architecture_diagram.png)
 
-**Figure 1.** System architecture: from public data sources to the served web map, with the causal layer branching off the shared feature pipeline.
+**Figure 1.** System architecture: from public data sources to the served web map, with the causal layer branching off the shared feature pipeline. (Same diagram as the Mermaid flowchart in the project's `README.md`, redrawn as a static image here for PDF/Zenodo export.)
 
 ### 4.2 Feature engineering
 
