@@ -44,23 +44,34 @@ but mediators such as stratification are not.
   estimating whether the Po effect varies spatially (by distance to the Po
   mouth) and temporally (by year), instead of a single average effect.
 
-## Results (2018–2023 data, 5 coastal cells)
+## Results (2018–2023 data, 5 coastal cells, full SST coverage)
 
 | Analysis | Estimated Po effect |
 |---|---|
-| Raw correlation (Po t-7 vs chlorophyll) | r = 0.42 |
-| Apparent effect (no controls) | +3.34 mg/m³ per +1000 m³/s |
-| Adjusted effect — Step A (season, SST) | +3.18 mg/m³ per +1000 m³/s |
-| Formal effect — Step C, DoWhy (season, SST, wind) | +3.14 mg/m³ per +1000 m³/s |
+| Raw correlation (Po t-7 vs chlorophyll) | r = 0.38 |
+| Apparent effect (no controls) | +2.69 mg/m³ per +1000 m³/s |
+| Adjusted effect — Step A (season, SST) | +2.46 mg/m³ per +1000 m³/s |
+| Formal effect — Step C, DoWhy (season, SST, wind) | +2.44 mg/m³ per +1000 m³/s |
 | Fixed-effects effect — Step B (season, wind, cell + year dummies) | +2.34 mg/m³ per +1000 m³/s |
 
-Seasonal and thermal confounders explain only ~5% of the apparent effect: the
+Seasonal and thermal confounders explain only ~9% of the apparent effect: the
 Po -> chlorophyll link is not a seasonal artefact. The effect survives an even
 stricter test: adjusting for cell and year fixed effects - which absorb any
 time-invariant trait of each cell and any shock common to all cells in a given
 year - still leaves a positive, significant estimate (+2.34, an 8% reduction
 from the pooled estimate using the same confounders). The estimate narrows as
 controls get stricter, but does not collapse to zero.
+
+**The four methods now agree closely.** Before the SST coverage fix (see
+Limitations), Steps A and C - which include SST - sat noticeably above Step B
+(+3.1-3.2 vs +2.34, a ~35% gap), because the only 2 cells with valid SST at
+the time happened to be the 2 cells closest to the Po delta, where Step D
+independently finds the effect is strongest. Restricting A/C to that
+non-representative subsample inflated their estimates. With full 5-cell SST
+coverage, A (+2.46) and C (+2.44) now sit within 5% of B (+2.34): the earlier
+gap was largely a sampling artefact of the SST bug, not a real discrepancy
+between adjustment strategies. This is a stronger, more coherent robustness
+result than before the fix.
 
 **Cluster-robust check on Step B (2018-2023 run).** The 95% CI reported above
 for Step B uses classical (iid-errors) standard errors, which ignore that Po
@@ -77,9 +88,9 @@ as a more precise replacement for it.
 
 | Refuter | Expected | Result |
 |---|---|---|
-| Placebo (Po replaced with noise) | ~0 | +0.02 |
-| Random common cause (fake confounder) | unchanged | +3.14 |
-| Random subset (80% of the data) | stable | +3.13 |
+| Placebo (Po replaced with noise) | ~0 | +0.01 |
+| Random common cause (fake confounder) | unchanged | +2.44 |
+| Random subset (80% of the data) | stable | +2.43 |
 
 The estimate is consistent across the two approaches and robust to the standard
 refutation tests.
@@ -88,13 +99,13 @@ refutation tests.
 robustness to method and data, not to a confounder we never measured (currents,
 other river inputs, solar radiation) - the structural limit noted below. Cinelli
 & Hazlett's (2020) partial-R² bound quantifies it instead of leaving it
-qualitative: a hidden confounder would need to explain **more than 33.8%** of
+qualitative: a hidden confounder would need to explain **more than 29.8%** of
 the residual variance of both Po discharge and chlorophyll to bring the
-estimate to zero (30.99% to erase statistical significance at the 5% level).
+estimate to zero (27.9% to erase statistical significance at the 5% level).
 Benchmarked against SST - the strongest confounder actually in the model - a
-hidden confounder as strong as SST would leave the estimate at +3.06 (95% CI
-+2.75, +3.38); even three times as strong as SST, at +2.90 (95% CI +2.60,
-+3.20). A plausible hidden confounder is therefore unlikely to explain the
+hidden confounder as strong as SST would leave the estimate at +2.34 (95% CI
++2.16, +2.52); even three times as strong as SST, at +2.14 (95% CI +1.98,
++2.31). A plausible hidden confounder is therefore unlikely to explain the
 effect away, though this bounds the risk rather than eliminating it.
 
 ### Heterogeneous effects (Step D, causal forest)
@@ -102,7 +113,8 @@ effect away, though this bounds the risk rather than eliminating it.
 Steps A, B and C all estimate a single average effect. `d_causal_forest.py`
 (CausalForestDML, EconML) asks whether that effect varies spatially (by
 distance to the Po mouth) or temporally (by year), using the same controls as
-Step B (season, wind - SST excluded for the coverage reason above).
+Step B (season, wind - SST excluded to stay directly comparable with Step B;
+its numbers below are unaffected by the SST coverage fix above).
 
 **Spatial pattern (the more solid of the two results).** The estimated effect
 decreases monotonically with distance from the Po mouth, and is only
@@ -141,11 +153,13 @@ already noted.
 ## Interpretation
 
 Holding season, temperature and wind fixed, a 1000 m³/s increase in the Po
-discharge is associated, seven days later, with about +3.1 mg/m³ of chlorophyll.
-Over the observed discharge range (~460–3970 m³/s) the effect is of the order of
-10 mg/m³, sizeable relative to the coastal medians. The causal forest (Step D)
-adds a spatial qualification to this average: the effect is concentrated near
-the Po delta and fades with distance, rather than being uniform along the coast.
+discharge is associated, seven days later, with about +2.3 to +2.5 mg/m³ of
+chlorophyll - a range now tight across all three single-average methods (see
+above). Over the observed discharge range (~460–3970 m³/s) the effect is of
+the order of 8-9 mg/m³, sizeable relative to the coastal medians. The causal
+forest (Step D) adds a spatial qualification to this average: the effect is
+concentrated near the Po delta and fades with distance, rather than being
+uniform along the coast.
 
 ## Limitations (to read alongside the results)
 
@@ -154,7 +168,7 @@ the Po delta and fades with distance, rather than being uniform along the coast.
   river inputs, solar radiation). If they exist, part of the estimated effect
   may belong to them. This is the structural limit of observational causal
   inference. Quantified for Step C: per the sensitivity analysis above, such a
-  confounder would need to be at least as strong as SST (and explain >33.8% of
+  confounder would need to be at least as strong as SST (and explain >29.8% of
   residual variance in both Po and chlorophyll) to matter - a bound, not proof
   that no such confounder exists.
 - **Temporal autocorrelation**: discharge and chlorophyll are autocorrelated
@@ -166,19 +180,19 @@ the Po delta and fades with distance, rather than being uniform along the coast.
   the result, at least for this check.
 - **Linear form** and fine scale (5 cells, 6 seasons): indicative, not
   definitive. Extending to more cells and years would strengthen it.
-- **SST data coverage (fixed, results below predate the fix)**: the results
-  above were produced when the nearest-pixel SST retrieval was valid for only
-  2 of the 5 cells across all six seasons (the other three fell on a
-  masked/land pixel in this reprocessed product) - not missing at random, but
-  a systematic gap tied to the grid-coastline alignment. `pipeline/features.py`
-  (`read_sst`) now searches a small radius around each cell centroid and picks
-  the closest pixel that is actually valid, instead of the literal nearest
-  coordinate; re-running the pipeline on the real data restores full 5-cell
-  SST coverage.
-  The Step A/B/C numbers above were estimated before this fix (Step B without
-  SST as a deliberate workaround, Steps A/C with SST but on the smaller
-  effective sample) and should be refreshed by re-running
-  `make ingest && make features && make causal` before being cited as current.
+- **SST data coverage (fixed, results above reflect the fix)**: the
+  nearest-pixel SST retrieval used to be valid for only 2 of the 5 cells
+  across all six seasons (the other three fell on a masked/land pixel in
+  this reprocessed product) - not missing at random, but a systematic gap
+  tied to the grid-coastline alignment. `pipeline/features.py` (`read_sst`)
+  now searches a small radius around each cell centroid and picks the
+  closest pixel that is actually valid, instead of the literal nearest
+  coordinate, restoring full 5-cell SST coverage. The results above are from
+  the pipeline re-run after this fix. As noted above, the fix also resolved
+  most of the earlier gap between Step A/C and Step B - evidence that the
+  gap was a sampling artefact of the SST bug (the 2 valid cells were the
+  ones nearest the Po delta, where the effect is strongest) rather than a
+  real methodological discrepancy.
 
 Correct phrasing of the results: *effect estimated and robust under the declared
 assumptions*, not *causal effect proven*.
