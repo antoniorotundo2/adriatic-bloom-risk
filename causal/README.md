@@ -150,14 +150,19 @@ the Po delta and fades with distance, rather than being uniform along the coast.
   the result, at least for this check.
 - **Linear form** and fine scale (5 cells, 6 seasons): indicative, not
   definitive. Extending to more cells and years would strengthen it.
-- **SST data coverage**: the nearest-pixel SST retrieval is valid for only 2 of
-  the 5 cells across all six seasons (the other three fall on a masked/land
-  pixel in this reprocessed product) - not missing at random, but a systematic
-  gap tied to the grid-coastline alignment. Including SST as a confounder would
-  silently shrink any analysis to those 2 cells; Step B therefore uses
-  season and wind (both complete across all 5 cells) instead. Steps A and B,
-  which do include SST, are consequently estimated on a smaller effective
-  sample than Step B.
+- **SST data coverage (fixed, results below predate the fix)**: the results
+  above were produced when the nearest-pixel SST retrieval was valid for only
+  2 of the 5 cells across all six seasons (the other three fell on a
+  masked/land pixel in this reprocessed product) - not missing at random, but
+  a systematic gap tied to the grid-coastline alignment. `pipeline/features.py`
+  (`read_sst`) now searches a small radius around each cell centroid and picks
+  the closest pixel that is actually valid, instead of the literal nearest
+  coordinate; re-running the pipeline on the real data restores full 5-cell
+  SST coverage.
+  The Step A/B/C numbers above were estimated before this fix (Step B without
+  SST as a deliberate workaround, Steps A/C with SST but on the smaller
+  effective sample) and should be refreshed by re-running
+  `make ingest && make features && make causal` before being cited as current.
 
 Correct phrasing of the results: *effect estimated and robust under the declared
 assumptions*, not *causal effect proven*.

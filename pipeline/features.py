@@ -3,8 +3,8 @@ Layer 2b - Multi-year feature engineering (robust cleaning + drivers).
 
 Reads ALL downloaded years (data/raw/*_YYYY.nc) and merges them. It:
   1. CLEANS chlorophyll: drops artefacts (>60 mg/m^3), aggregates with the MEDIAN.
-  2. Optional DRIVERS: SST (nearest pixel), wind (daily mean speed), Po discharge
-     (max over the box = river channel) + 7-day lag.
+  2. Optional DRIVERS: SST (nearest VALID pixel, see note in read_sst), wind
+     (daily mean speed), Po discharge (max over the box = river channel) + 7-day lag.
   3. Temporal/spatial FEATURES. Rolling windows and lag are computed WITHIN each
      season (per year): they must not bridge the winter gap between two seasons.
 
@@ -29,6 +29,8 @@ OUT = "data/processed/features.csv"
 CHL_MAX_VALID = 60.0
 MIN_VALID_PIXELS = 1
 PO_MOUTH = (12.50, 44.95)
+SST_SEARCH_RADIUS_DEG = 0.15   # ~15 km: enough to step off a masked/land pixel
+SST_MIN_VALID_FRAC = 0.9       # candidate pixel must be valid on ~90%+ of days
 
 
 def open_many(pattern):
@@ -102,8 +104,34 @@ def read_sst(cells):
     var = detect_var(ds, {"analysed_sst", "sst"})
     rows = []
     for _, cell in cells.iterrows():
-        # SST is a smooth field: take the nearest pixel to the cell centroid
-        s = ds[var].sel(longitude=cell.cx, latitude=cell.cy, method="nearest")
+        # SST is a smooth field, but the literal nearest-coordinate pixel can
+        # fall on a masked/land cell in this reprocessed product - systematic
+        # for some cells (always masked), not random (see causal/README.md,
+        # "SST data coverage"). Search a small box around the centroid and
+        # pick the CLOSEST pixel that is actually valid on ~all days, instead
+        # of blindly taking the nearest coordinate regardless of its mask.
+        box = ds[var].sel(
+            longitude=slice(cell.cx - SST_SEARCH_RADIUS_DEG, cell.cx + SST_SEARCH_RADIUS_DEG),
+            latitude=slice(cell.cy - SST_SEARCH_RADIUS_DEG, cell.cy + SST_SEARCH_RADIUS_DEG),
+        )
+        valid_frac = box.notnull().mean(dim="time").compute()
+        lats, lons = valid_frac.latitude.values, valid_frac.longitude.values
+        frac_vals = valid_frac.values
+        best = None
+        for i, lat in enumerate(lats):
+            for j, lon in enumerate(lons):
+                if frac_vals[i, j] >= SST_MIN_VALID_FRAC:
+                    d = haversine_km(lon, lat, cell.cx, cell.cy)
+                    if best is None or d < best[0]:
+                        best = (d, lon, lat)
+        if best is None:
+            print(f"  WARNING: no SST pixel with >= {int(SST_MIN_VALID_FRAC*100)}% valid coverage "
+                  f"within {SST_SEARCH_RADIUS_DEG} deg of {cell.cell_code} - SST skipped for this cell.")
+            continue
+        dist, best_lon, best_lat = best
+        print(f"  {cell.cell_code}: SST pixel at {dist:.1f} km from centroid "
+              f"({'nearest pixel' if dist < 4 else 'nearest VALID pixel, nearest coordinate was masked'})")
+        s = ds[var].sel(longitude=best_lon, latitude=best_lat, method="nearest")
         for t, v in zip(s["time"].values, s.values):
             if pd.notna(v):
                 celsius = float(v) - 273.15 if float(v) > 100 else float(v)  # K -> C
