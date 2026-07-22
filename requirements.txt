@@ -26,3 +26,4 @@ fastapi>=0.115.0
 statsmodels>=0.14
 dowhy>=0.12
 econml>=0.16       # Step C: heterogeneity / non-stationarity (CausalForestDML)
+matplotlib>=3.9    # causal/plots.py: report figures

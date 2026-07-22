@@ -38,31 +38,23 @@ OUTCOME = "chl"
 CONFOUNDERS = ["doy_sin", "doy_cos", "wind_speed"]
 
 
-def main():
+def fit():
+    """Fit the pooled and two-way fixed-effects models (classical + clustered
+    SE). Returns (df, pooled, fe_model, fe_model_clustered) - reused by
+    causal/plots.py so the figures match the numbers this script prints."""
     df = pd.read_csv(FEATURES_CSV, parse_dates=["ts"])
     df = df.dropna(subset=[TREATMENT, OUTCOME] + CONFOUNDERS).copy()
     df["po_k"] = df[TREATMENT] / 1000.0
     df["year"] = df["ts"].dt.year.astype(str)          # categorical, not numeric
-    n_cells = df["cell_code"].nunique()
-    print(f"Usable rows: {len(df)}  |  cells: {n_cells}  |  years: {df['year'].nunique()}")
-    if n_cells < 5:
-        print(f"WARNING: only {n_cells}/5 cells have complete data for the chosen "
-              f"confounders - the fixed-effects estimate below is not representative "
-              f"of the full coastline. Check which confounder is dropping cells "
-              f"(e.g. via per-cell dropna counts) before trusting this result.")
 
     # --- Baseline (same as Step A, for direct comparison): pooled OLS ------
     pooled = smf.ols(f"{OUTCOME} ~ po_k + doy_sin + doy_cos + wind_speed", data=df).fit()
-    b_pooled = pooled.params["po_k"]
-    ci_pooled = pooled.conf_int().loc["po_k"]
 
     # --- Two-way fixed effects: + C(cell) + C(year) ------------------------
     # C(...) tells statsmodels/patsy to treat the variable as categorical,
     # i.e. to fit one dummy (intercept shift) per cell and per year.
     formula = f"{OUTCOME} ~ po_k + doy_sin + doy_cos + wind_speed + C(cell_code) + C(year)"
     fe_model = smf.ols(formula, data=df).fit()
-    b_fe = fe_model.params["po_k"]
-    ci_fe = fe_model.conf_int().loc["po_k"]
 
     # --- Same model, cluster-robust SEs (by cell) ---------------------------
     # Po discharge and chlorophyll are autocorrelated within a cell over time,
@@ -73,6 +65,23 @@ def main():
     fe_model_clustered = smf.ols(formula, data=df).fit(
         cov_type="cluster", cov_kwds={"groups": df["cell_code"]}
     )
+    return df, pooled, fe_model, fe_model_clustered
+
+
+def main():
+    df, pooled, fe_model, fe_model_clustered = fit()
+    n_cells = df["cell_code"].nunique()
+    print(f"Usable rows: {len(df)}  |  cells: {n_cells}  |  years: {df['year'].nunique()}")
+    if n_cells < 5:
+        print(f"WARNING: only {n_cells}/5 cells have complete data for the chosen "
+              f"confounders - the fixed-effects estimate below is not representative "
+              f"of the full coastline. Check which confounder is dropping cells "
+              f"(e.g. via per-cell dropna counts) before trusting this result.")
+
+    b_pooled = pooled.params["po_k"]
+    ci_pooled = pooled.conf_int().loc["po_k"]
+    b_fe = fe_model.params["po_k"]
+    ci_fe = fe_model.conf_int().loc["po_k"]
     ci_fe_c = fe_model_clustered.conf_int().loc["po_k"]
 
     print("\n=== Po effect: pooled OLS vs two-way fixed effects ===")

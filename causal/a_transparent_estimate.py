@@ -31,14 +31,24 @@ OUTCOME = "chl"
 CONFOUNDERS = ["doy_sin", "doy_cos", "sst"]
 
 
-def main():
+def fit():
+    """Fit the naive and adjusted regressions. Returns (df, m_naive, m_adj),
+    the raw statsmodels results - reused by causal/plots.py so the figures
+    are guaranteed to show the same numbers this script prints."""
     df = pd.read_csv(FEATURES_CSV, parse_dates=["ts"])
     df = df.dropna(subset=[TREATMENT, OUTCOME] + CONFOUNDERS).copy()
-    print(f"Usable rows (no missing values): {len(df)}")
-
     # Standardise Po in units of 1000 m^3/s, so the coefficient reads as
     # "chlorophyll change per +1000 m^3/s of discharge".
     df["po_k"] = df[TREATMENT] / 1000.0
+    m_naive = smf.ols(f"{OUTCOME} ~ po_k", data=df).fit()
+    formula = f"{OUTCOME} ~ po_k + doy_sin + doy_cos + sst"
+    m_adj = smf.ols(formula, data=df).fit()
+    return df, m_naive, m_adj
+
+
+def main():
+    df, m_naive, m_adj = fit()
+    print(f"Usable rows (no missing values): {len(df)}")
 
     # --- 1. Raw correlation ------------------------------------------------
     r = df["po_k"].corr(df[OUTCOME])
@@ -46,15 +56,12 @@ def main():
     print("   (expected weak/misleading: season moves Po and chlorophyll together)")
 
     # --- 2. APPARENT effect (no controls) ----------------------------------
-    m_naive = smf.ols(f"{OUTCOME} ~ po_k", data=df).fit()
     b_naive = m_naive.params["po_k"]
     print("\n2) APPARENT Po effect (no controls):")
     print(f"   {b_naive:+.3f} mg/m^3 of chlorophyll per +1000 m^3/s   "
           f"(95% CI: {m_naive.conf_int().loc['po_k',0]:+.3f}, {m_naive.conf_int().loc['po_k',1]:+.3f})")
 
     # --- 3. ADJUSTED effect (with confounders) -----------------------------
-    formula = f"{OUTCOME} ~ po_k + doy_sin + doy_cos + sst"
-    m_adj = smf.ols(formula, data=df).fit()
     b_adj = m_adj.params["po_k"]
     ci_lo, ci_hi = m_adj.conf_int().loc["po_k"]
     print("\n3) ADJUSTED Po effect (controlling for season and SST):")

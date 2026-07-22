@@ -63,21 +63,14 @@ def check_coverage(df):
     return True
 
 
-def main():
-    df = load()
-    if not check_coverage(df):
-        return
-
+def fit_and_get_effects(df):
+    """Fit the causal forest and compute the by-cell and by-year heterogeneity
+    tables. Returns (cells_df, years_df), each with an 'effect'/'lo'/'hi'
+    column - reused by causal/plots.py for the heterogeneity figures."""
     Y = df[OUTCOME].values
     Tt = df["po_k"].values
     W = df[CONTROLS].values
     X = df[HETEROGENEITY].values
-
-    print(f"\nHeterogeneity variables: {HETEROGENEITY}")
-    print(f"  distinct distance-to-Po values (~= number of cells): {df['dist_po_km'].nunique()}")
-    print(f"  distinct years: {df['year_num'].nunique()}")
-    print("These are the only axes of variation the forest can use for X - with so")
-    print("few distinct values, treat the effect estimates below as exploratory.\n")
 
     est = CausalForestDML(
         model_y=GradientBoostingRegressor(n_estimators=200, max_depth=3, random_state=42),
@@ -95,23 +88,41 @@ def main():
     year_mid = df["year_num"].median()
     X_by_cell = np.column_stack([cells["dist_po_km"].values,
                                   np.full(len(cells), year_mid)])
-    effect_by_cell = est.effect(X_by_cell)
-    lo_by_cell, hi_by_cell = est.effect_interval(X_by_cell, alpha=0.1)
-
-    print("=== Effect by coastal cell (at the median year), ordered near -> far from the Po ===")
-    for code, dist, eff, lo, hi in zip(cells.index, cells["dist_po_km"], effect_by_cell, lo_by_cell, hi_by_cell):
-        print(f"  {code:6s}  dist={dist:6.1f} km   effect={eff:+.3f}  (90% CI: {lo:+.3f}, {hi:+.3f}) mg/m^3 per +1000 m^3/s")
+    cells["effect"] = est.effect(X_by_cell)
+    cells["lo"], cells["hi"] = est.effect_interval(X_by_cell, alpha=0.1)
 
     # --- Heterogeneity by year (at the median cell distance) ---------------
-    years = sorted(df["year_num"].unique())
+    years = pd.DataFrame({"year_num": sorted(df["year_num"].unique())})
     dist_mid = df["dist_po_km"].median()
-    X_by_year = np.column_stack([np.full(len(years), dist_mid), years])
-    effect_by_year = est.effect(X_by_year)
-    lo_by_year, hi_by_year = est.effect_interval(X_by_year, alpha=0.1)
+    X_by_year = np.column_stack([np.full(len(years), dist_mid), years["year_num"].values])
+    years["effect"] = est.effect(X_by_year)
+    years["lo"], years["hi"] = est.effect_interval(X_by_year, alpha=0.1)
+
+    return cells, years
+
+
+def main():
+    df = load()
+    if not check_coverage(df):
+        return
+
+    print(f"\nHeterogeneity variables: {HETEROGENEITY}")
+    print(f"  distinct distance-to-Po values (~= number of cells): {df['dist_po_km'].nunique()}")
+    print(f"  distinct years: {df['year_num'].nunique()}")
+    print("These are the only axes of variation the forest can use for X - with so")
+    print("few distinct values, treat the effect estimates below as exploratory.\n")
+
+    cells, years = fit_and_get_effects(df)
+
+    print("=== Effect by coastal cell (at the median year), ordered near -> far from the Po ===")
+    for code, row in cells.iterrows():
+        print(f"  {code:6s}  dist={row.dist_po_km:6.1f} km   effect={row.effect:+.3f}  "
+              f"(90% CI: {row.lo:+.3f}, {row.hi:+.3f}) mg/m^3 per +1000 m^3/s")
 
     print("\n=== Effect by year (at the median cell distance) ===")
-    for yr, eff, lo, hi in zip(years, effect_by_year, lo_by_year, hi_by_year):
-        print(f"  {int(yr)}   effect={eff:+.3f}  (90% CI: {lo:+.3f}, {hi:+.3f}) mg/m^3 per +1000 m^3/s")
+    for _, row in years.iterrows():
+        print(f"  {int(row.year_num)}   effect={row.effect:+.3f}  "
+              f"(90% CI: {row.lo:+.3f}, {row.hi:+.3f}) mg/m^3 per +1000 m^3/s")
 
     print("\n=== Interpretation guide ===")
     print("- If effects near the Po (small dist_po_km) are consistently higher than")

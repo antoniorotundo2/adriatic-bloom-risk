@@ -55,9 +55,13 @@ def build_dag():
     return "digraph { " + nodes + " " + " ".join(edges) + " }"
 
 
-def main():
+def fit():
+    """Model, identification, estimation and refuters. Returns (df, effect,
+    sensitivity) - reused by causal/plots.py so the forest-plot figure shows
+    the same point estimate and CI as this script prints (the CI comes from
+    the sensitivity analysis's own standard error, since both operate on the
+    same underlying backdoor.linear_regression fit)."""
     df = build_dataframe()
-    print(f"Usable rows: {len(df)}")
 
     model = CausalModel(
         data=df,
@@ -65,15 +69,27 @@ def main():
         outcome=OUTCOME,
         graph=build_dag(),
     )
-
-    # 2. Identification (DoWhy chooses what to adjust for)
     identified = model.identify_effect(proceed_when_unidentifiable=True)
-
-    # 3. Estimation (linear regression on the identified backdoor strategy)
     estimate = model.estimate_effect(
         identified,
         method_name="backdoor.linear_regression",
     )
+    sensitivity = model.refute_estimate(
+        identified, estimate,
+        method_name="add_unobserved_common_cause",
+        simulation_method="linear-partial-R2",
+        benchmark_common_causes=["sst"],
+        effect_fraction_on_treatment=[1, 2, 3],
+        effect_fraction_on_outcome=[1, 2, 3],
+        plot_estimate=False,
+    )
+    return df, model, identified, estimate, sensitivity
+
+
+def main():
+    df, model, identified, estimate, sensitivity = fit()
+    print(f"Usable rows: {len(df)}")
+
     effect = estimate.value
     print("\n=== Estimated causal effect (DoWhy) ===")
     print(f"  Effect of Po on chlorophyll: {effect:+.3f} mg/m^3 per +1000 m^3/s")
@@ -110,16 +126,7 @@ def main():
     # never measured (currents, other river inputs, solar radiation) need to
     # be, relative to SST (the strongest confounder actually in the model), to
     # explain the estimated effect away? Cinelli & Hazlett (2020) partial-R^2
-    # bound, benchmarked against SST.
-    sensitivity = model.refute_estimate(
-        identified, estimate,
-        method_name="add_unobserved_common_cause",
-        simulation_method="linear-partial-R2",
-        benchmark_common_causes=["sst"],
-        effect_fraction_on_treatment=[1, 2, 3],
-        effect_fraction_on_outcome=[1, 2, 3],
-        plot_estimate=False,
-    )
+    # bound, benchmarked against SST. Already computed in fit().
     rv = sensitivity.stats["robustness_value"]
     rv_alpha = sensitivity.stats["robustness_value_alpha"]
     bench = sensitivity.benchmarking_results

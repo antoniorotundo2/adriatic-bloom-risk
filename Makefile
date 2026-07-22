@@ -33,12 +33,13 @@ features:
 train:
 	.venv/bin/python pipeline/train_model.py
 
-# Run the causal analysis (Step A: transparent, Step B: DoWhy)
+# Run the causal analysis (Steps A-D) and regenerate the report figures
 causal:
 	.venv/bin/python causal/a_transparent_estimate.py
 	.venv/bin/python causal/b_fixed_effects.py
 	.venv/bin/python causal/c_dowhy_estimate.py
 	.venv/bin/python causal/d_causal_forest.py
+	.venv/bin/python causal/plots.py
 
 # Run the test suite
 test:
