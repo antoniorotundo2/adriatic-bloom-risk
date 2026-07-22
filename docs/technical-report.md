@@ -49,6 +49,18 @@ In-situ chemical-physical series from ARPAE-Daphne (temperature, chlorophyll-a, 
 
 The system is containerised (Docker Compose) and comprises a PostgreSQL/PostGIS spatial database, a FastAPI service exposing GeoJSON endpoints, and a Leaflet web map. Ingestion, feature engineering, model training and the causal analysis are Python scripts run against the database. The design is data-source-agnostic: each source is a replaceable node, so the system runs on public data and can incorporate additional sources without structural change.
 
+```mermaid
+flowchart TD
+    A["Public data sources<br/>Copernicus Marine · ERA5 · GloFAS"] --> B["Feature pipeline<br/>xarray, geopandas"]
+    B --> C["Predictive model<br/>LightGBM + conformal prediction<br/>(point estimate + confidence interval, always together)"]
+    C --> D["PostGIS<br/>coastal cells, stations, predictions with native uncertainty"]
+    D --> E["FastAPI<br/>/api/risk · /api/stations · /api/chlorophyll → GeoJSON"]
+    E --> F["Leaflet web map<br/>colour = risk, hatching = uncertainty"]
+    B --> G["Causal layer (causal/)<br/>A: transparent estimate · B: fixed effects<br/>C: DoWhy + refuters · D: causal forest"]
+```
+
+**Figure 1.** System architecture: from public data sources to the served web map, with the causal layer branching off the shared feature pipeline.
+
 ### 4.2 Feature engineering
 
 Satellite chlorophyll is cleaned per cell and day by discarding physically implausible values (> 60 mg/m³, satellite artifacts) and aggregating remaining pixels with the median (robust to residual contamination). SST (a smooth field) is sampled at the nearest pixel to each cell centroid that is actually valid on almost all days, searched within a small radius (~15 km) around the centroid rather than at the literal nearest coordinate — an earlier version used the literal nearest coordinate, which in this reprocessed product fell on a masked/land pixel for 3 of the 5 cells (Section 4.4); the corrected search restores full 5-cell coverage. Wind speed is the daily mean of the nearest pixel, and Po discharge is extracted as the maximum over a box on the lower Po (Pontelagoscuro to delta), which robustly selects the river-channel pixel. Rolling medians (7, 30 days), cyclic day-of-year encodings, and distance to the Po mouth are added. Rolling windows and lags are computed within each season to avoid bridging the winter gap.
@@ -65,23 +77,42 @@ Step (B) and (D) deliberately use season and wind as controls, not SST, to stay 
 
 ## 5. Results
 
-**Chlorophyll gradient.** Cleaned per-cell median chlorophyll decreases from the Po delta southward (Casalborsetti ≈ 4.8 → Cattolica ≈ 1.9 mg/m³), reproducing the documented Po signature from the system's own data.
+**Chlorophyll gradient.** Cleaned per-cell median chlorophyll decreases from the Po delta southward (Casalborsetti ≈ 4.8 → Cattolica ≈ 1.9 mg/m³), reproducing the documented Po signature from the system's own data (Figure 2).
 
 ![Median chlorophyll-a per coastal cell, ordered by distance from the Po delta](figures/chlorophyll_gradient.png)
 
+**Figure 2.** Median chlorophyll-a per coastal cell (2018–2023), ordered by distance from the Po delta.
+
 **Prediction.** On the unseen 2023 season, the driver-based model does **not** outperform a next-day persistence baseline (MAE ≈ 3.63 vs 2.64 mg/m³): chlorophyll is strongly autocorrelated, and exogenous drivers explain slow, seasonal dynamics rather than the day-to-day increment — a known and honestly-reported outcome. Conformal coverage on the test season is ≈ 83% (nominal 90%). Feature importances rank cyclic day-of-year, 7-day-lagged Po discharge and Po discharge highest; the prominence of lagged Po is stable across the move from one to six seasons.
 
-**Causal effect (average).** The raw correlation between lagged Po and chlorophyll is r ≈ 0.38. The apparent effect (no controls) is +2.69 mg/m³ per +1000 m³/s; adjusting for season and SST (A) gives +2.46; the DoWhy estimate adjusting for season, SST and wind (C) gives +2.44; the two-way fixed-effects estimate (B), adjusting for season, wind, cell and year, gives +2.34 — an 8% reduction from the pooled estimate using the same controls, but still positive and statistically distinguishable from zero. The estimate narrows as controls get stricter but does not collapse to zero. Notably, (A) and (C) — which include SST — now sit within 5% of (B), against a ~35% gap before the SST coverage fix (Section 4.2): the earlier gap traced to the 2 SST-valid cells being, at the time, precisely the 2 cells nearest the Po delta where the causal forest (D, below) independently finds the strongest effect, so restricting (A) and (C) to them had inflated their estimates. Refutation tests for (C) behave as expected: placebo effect +0.01 (≈ 0), random common cause +2.44 (unchanged), data-subset +2.43 (stable). The sensitivity analysis for (C) finds that an unobserved confounder would need to explain more than 29.8% of the residual variance of both Po discharge and chlorophyll to bring the estimate to zero (27.9% to erase significance at the 5% level) — benchmarked against SST, a confounder as strong as SST would leave the estimate at +2.34 (95% CI +2.16, +2.52), and even three times as strong, at +2.14 (95% CI +1.98, +2.31). Over the observed discharge range (~460–3970 m³/s), the implied average effect is of order 8–9 mg/m³.
+**Causal effect (average).** The raw correlation between lagged Po and chlorophyll is r ≈ 0.38. The apparent effect (no controls) is +2.69 mg/m³ per +1000 m³/s; adjusting for season and SST (A) gives +2.46; the DoWhy estimate adjusting for season, SST and wind (C) gives +2.44; the two-way fixed-effects estimate (B), adjusting for season, wind, cell and year, gives +2.34 — an 8% reduction from the pooled estimate using the same controls, but still positive and statistically distinguishable from zero (Table 1, Figure 3). The estimate narrows as controls get stricter but does not collapse to zero. Notably, (A) and (C) — which include SST — now sit within 5% of (B), against a ~35% gap before the SST coverage fix (Section 4.2): the earlier gap traced to the 2 SST-valid cells being, at the time, precisely the 2 cells nearest the Po delta where the causal forest (D, below) independently finds the strongest effect, so restricting (A) and (C) to them had inflated their estimates. Refutation tests for (C) behave as expected: placebo effect +0.01 (≈ 0), random common cause +2.44 (unchanged), data-subset +2.43 (stable). The sensitivity analysis for (C) finds that an unobserved confounder would need to explain more than 29.8% of the residual variance of both Po discharge and chlorophyll to bring the estimate to zero (27.9% to erase significance at the 5% level) — benchmarked against SST, a confounder as strong as SST would leave the estimate at +2.34 (95% CI +2.16, +2.52), and even three times as strong, at +2.14 (95% CI +1.98, +2.31). Over the observed discharge range (~460–3970 m³/s), the implied average effect is of order 8–9 mg/m³.
+
+**Table 1.** Estimated Po effect on chlorophyll-a across methods (mg/m³ per +1000 m³/s of Po discharge).
+
+| Method | Estimate | 95% CI |
+|---|---|---|
+| Raw correlation (Po t-7 vs chlorophyll) | r = 0.38 | — |
+| Apparent effect (no controls) | +2.69 | +2.51, +2.87 |
+| Step A — transparent estimate (season, SST) | +2.46 | +2.27, +2.65 |
+| Step C — DoWhy (season, SST, wind) | +2.44 | +2.27, +2.62 |
+| Step B — fixed effects, classical SE (season, wind, cell + year) | +2.34 | +2.13, +2.54 |
+| Step B — fixed effects, clustered SE (by cell) | +2.34 | +1.87, +2.81 |
 
 ![Causal effect estimates across methods (apparent, Step A, Step C, Step B classical and clustered SE), with 95% CI](figures/causal_effects_comparison.png)
 
-**Causal effect (heterogeneity).** The causal forest (D) finds a spatial pattern: the estimated effect decreases monotonically with distance from the Po mouth, from +1.75 mg/m³ per +1000 m³/s at Casalborsetti (90% CI +0.73, +2.77) and +1.13 at Lido Adriano (CI +0.25, +2.01), to statistically indistinguishable from zero at Cesenatico, Rimini and Cattolica (CIs spanning zero). This is directionally consistent with a physical dilution of the river's influence with distance, though it remains a descriptive pattern over 5 cells rather than a validated general law.
+**Figure 3.** Causal effect estimates across methods, with 95% confidence intervals (same data as Table 1).
+
+**Causal effect (heterogeneity).** The causal forest (D) finds a spatial pattern: the estimated effect decreases monotonically with distance from the Po mouth, from +1.75 mg/m³ per +1000 m³/s at Casalborsetti (90% CI +0.73, +2.77) and +1.13 at Lido Adriano (CI +0.25, +2.01), to statistically indistinguishable from zero at Cesenatico, Rimini and Cattolica (CIs spanning zero) (Figure 4). This is directionally consistent with a physical dilution of the river's influence with distance, though it remains a descriptive pattern over 5 cells rather than a validated general law.
 
 ![Spatial heterogeneity: estimated Po effect vs distance to the Po mouth, 90% CI](figures/spatial_heterogeneity.png)
 
-The year-by-year estimates show no interpretable trend: confidence intervals are wide, particularly at the ends of the 2018–2023 series, and no claim is made about a link to the documented Adriatic oligotrophication trend — the data neither confirm nor rule it out. No formal refutation test was run for the causal forest, making this the most exploratory of the four causal analyses.
+**Figure 4.** Spatial heterogeneity of the Po effect: estimated effect vs distance to the Po mouth, with 90% confidence intervals (causal forest, Step D).
+
+The year-by-year estimates show no interpretable trend (Figure 5): confidence intervals are wide, particularly at the ends of the 2018–2023 series, and no claim is made about a link to the documented Adriatic oligotrophication trend — the data neither confirm nor rule it out. No formal refutation test was run for the causal forest, making this the most exploratory of the four causal analyses.
 
 ![Temporal heterogeneity: estimated Po effect by year, 90% CI](figures/temporal_heterogeneity.png)
+
+**Figure 5.** Temporal heterogeneity of the Po effect: estimated effect by year, with 90% confidence intervals (causal forest, Step D).
 
 ## 6. Discussion and limitations
 
