@@ -84,6 +84,19 @@ as a more precise replacement for it.
 The estimate is consistent across the two approaches and robust to the standard
 refutation tests.
 
+**Sensitivity to unobserved confounding.** The three refuters above test
+robustness to method and data, not to a confounder we never measured (currents,
+other river inputs, solar radiation) - the structural limit noted below. Cinelli
+& Hazlett's (2020) partial-R² bound quantifies it instead of leaving it
+qualitative: a hidden confounder would need to explain **more than 33.8%** of
+the residual variance of both Po discharge and chlorophyll to bring the
+estimate to zero (30.99% to erase statistical significance at the 5% level).
+Benchmarked against SST - the strongest confounder actually in the model - a
+hidden confounder as strong as SST would leave the estimate at +3.06 (95% CI
++2.75, +3.38); even three times as strong as SST, at +2.90 (95% CI +2.60,
++3.20). A plausible hidden confounder is therefore unlikely to explain the
+effect away, though this bounds the risk rather than eliminating it.
+
 ### Heterogeneous effects (Step D, causal forest)
 
 Steps A, B and C all estimate a single average effect. `d_causal_forest.py`
@@ -140,7 +153,10 @@ the Po delta and fades with distance, rather than being uniform along the coast.
   not the existence of confounders absent from the dataset (currents, other
   river inputs, solar radiation). If they exist, part of the estimated effect
   may belong to them. This is the structural limit of observational causal
-  inference.
+  inference. Quantified for Step C: per the sensitivity analysis above, such a
+  confounder would need to be at least as strong as SST (and explain >33.8% of
+  residual variance in both Po and chlorophyll) to matter - a bound, not proof
+  that no such confounder exists.
 - **Temporal autocorrelation**: discharge and chlorophyll are autocorrelated
   series; standard confidence intervals tend to be too narrow. The point
   estimate is more reliable than its stated precision. Quantified for Step B:
