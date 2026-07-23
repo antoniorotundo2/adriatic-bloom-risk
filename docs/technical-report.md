@@ -129,6 +129,24 @@ Future work: integrate ARPAE-Daphne in-situ series for calibration and functiona
 
 Source code: https://github.com/antoniorotundo2/adriatic-bloom-risk (MIT license). Raw data are not redistributed; they are reproducible from the ingestion scripts using free Copernicus Marine, Climate Data Store and Early Warning Data Store accounts. In-situ data remain subject to ARPAE-Daphne terms of use.
 
+## How to cite
+
+Rotundo, A. (2026). Adriatic Bloom Risk: an operational geospatial system for phytoplankton bloom-risk estimation with quantified uncertainty and a causal analysis of Po river influence on the Romagna coast. Zenodo. https://doi.org/10.5281/zenodo.21204039
+
+```bibtex
+@techreport{rotundo2026adriatic,
+  author = {Rotundo, Antonio},
+  title  = {Adriatic Bloom Risk: an operational geospatial system for
+            phytoplankton bloom-risk estimation with quantified
+            uncertainty and a causal analysis of Po river influence
+            on the Romagna coast},
+  year   = {2026},
+  doi    = {10.5281/zenodo.21204039},
+  url    = {https://doi.org/10.5281/zenodo.21204039},
+  note   = {Zenodo}
+}
+```
+
 ## References
 
 DOIs marked **[verified]** were confirmed against the source during preparation. Those marked **[verify]** are well-known works whose bibliographic details should still be checked against the original, and the causal-ML reference below still needs its final DOI retrieved from the article page. Every reference must be read in its original form before being cited in a formal publication.
