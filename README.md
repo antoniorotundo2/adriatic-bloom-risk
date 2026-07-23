@@ -1,4 +1,4 @@
-![Adriatic Bloom Risk](docs/logo.svg)
+<h1><img src="docs/logo.svg" alt="Adriatic Bloom Risk"></h1>
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21204039.svg)](https://doi.org/10.5281/zenodo.21204039)
 [![CI](https://github.com/antoniorotundo2/adriatic-bloom-risk/actions/workflows/ci.yml/badge.svg)](https://github.com/antoniorotundo2/adriatic-bloom-risk/actions/workflows/ci.yml)
