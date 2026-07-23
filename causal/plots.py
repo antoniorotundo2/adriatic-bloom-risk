@@ -162,11 +162,11 @@ def fig_architecture():
         "D": (3.7, 4.7, "PostGIS\ncoastal cells, stations, predictions\nwith native uncertainty", 5.8, 1.0),
         "E": (3.7, 2.9, "FastAPI\n/api/risk · /api/stations · /api/chlorophyll → GeoJSON", 5.8, 0.9),
         "F": (3.7, 1.1, "Leaflet web map\ncolour = risk, hatching = uncertainty", 4.8, 0.9),
-        "G": (9.0, 6.6, "Causal layer (causal/)\nA: transparent · B: fixed effects\nC: DoWhy + refuters · D: causal forest", 4.8, 1.15),
+        "G": (9.5, 6.6, "Causal layer (causal/)\nA: transparent · B: fixed effects\nC: DoWhy + refuters · D: causal forest", 4.8, 1.15),
     }
 
     fig, ax = plt.subplots(figsize=(9.5, 8))
-    ax.set_xlim(0, 12)
+    ax.set_xlim(0, 12.5)
     ax.set_ylim(0, 11)
     ax.axis("off")
 
