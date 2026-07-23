@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adriatic Bloom Risk — Romagna coast</title>
+<title>Adriatic Bloom Risk: Romagna coast</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -60,7 +60,7 @@
 <body>
 <div class="app">
   <header>
-    <h1>Adriatic Bloom Risk — Romagna coast</h1>
+    <h1>Adriatic Bloom Risk: Romagna coast</h1>
     <span class="subtitle">bloom risk · chlorophyll · uncertainty</span>
     <span class="subtitle" id="data-date"></span>
   </header>
@@ -121,19 +121,19 @@
     const chl = p.chl_pred != null
       ? `<div class="info-row"><span class="k">Predicted chlorophyll</span><span>${p.chl_pred.toFixed(2)} mg/m³</span></div>
          <div class="info-row"><span class="k">Interval (90%)</span><span>${p.chl_lower.toFixed(2)}–${p.chl_upper.toFixed(2)}</span></div>
-         <div class="info-row"><span class="k">Cell threshold</span><span>${p.threshold != null ? p.threshold.toFixed(2)+' mg/m³' : '—'}</span></div>` : '';
+         <div class="info-row"><span class="k">Cell threshold</span><span>${p.threshold != null ? p.threshold.toFixed(2)+' mg/m³' : 'n/a'}</span></div>` : '';
     document.getElementById('info-panel').innerHTML = `
       <div class="info-cell-name">${p.label} <span class="badge badge-demo">risk</span></div>
       <div class="info-row"><span class="k">Date</span><span>${p.date}</span></div>
       <div class="info-row"><span class="k">Risk (P exceed threshold)</span><span>${(p.risk_estimate*100).toFixed(0)}%</span></div>
       ${chl}
-      <div class="info-row"><span class="k">Model</span><span>${p.model_version || '—'}</span></div>`;
+      <div class="info-row"><span class="k">Model</span><span>${p.model_version || 'n/a'}</span></div>`;
   }
   function showChl(p) {
     document.getElementById('info-panel').innerHTML = `
       <div class="info-cell-name">${p.label} <span class="badge badge-real">chlorophyll</span></div>
       <div class="info-row"><span class="k">Date</span><span>${p.date}</span></div>
-      <div class="info-row"><span class="k">Chlorophyll-a</span><span>${p.chl_mean != null ? p.chl_mean.toFixed(2)+' mg/m³' : '—'}</span></div>
+      <div class="info-row"><span class="k">Chlorophyll-a</span><span>${p.chl_mean != null ? p.chl_mean.toFixed(2)+' mg/m³' : 'n/a'}</span></div>
       <div class="info-row"><span class="k">Source</span><span>Copernicus Marine</span></div>`;
   }
 
@@ -159,16 +159,16 @@
     buildControl();
   });
 
-  // CHLOROPHYLL layer (real) — empty until ingestion has run
+  // CHLOROPHYLL layer (real), empty until ingestion has run
   fetch('/api/chlorophyll').then(r => r.json()).then(geo => {
     const layer = L.geoJSON(geo, {
       style: f => ({ color:'#0E2A35', weight:1, fillColor:chlColor(f.properties.chl_mean), fillOpacity:0.8 }),
       onEachFeature: (f, l) => {
         l.on('click', () => showChl(f.properties));
-        l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : '—'} mg/m³`, { sticky:true });
+        l.bindTooltip(`${f.properties.label}: ${f.properties.chl_mean != null ? f.properties.chl_mean.toFixed(2) : 'n/a'} mg/m³`, { sticky:true });
       },
     });
-    if (geo.features.length) overlays['Chlorophyll-a — Copernicus (real)'] = layer;
+    if (geo.features.length) overlays['Chlorophyll-a: Copernicus (real)'] = layer;
     buildControl();
   });
 

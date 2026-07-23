@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-Nota: questa licenza copre esclusivamente il codice di questo repository.
-I dati ambientali (ARPAE-Daphne, Copernicus, ecc.) restano soggetti alle
-rispettive licenze e condizioni d'uso — vedi la sezione "Data availability"
-nel README.
+Note: this license covers only the code in this repository. Environmental
+data (ARPAE-Daphne, Copernicus, etc.) remain subject to their respective
+licenses and terms of use; see the "Data availability" section in the
+README.
