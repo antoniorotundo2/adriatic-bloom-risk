@@ -1,4 +1,4 @@
-# Adriatic Bloom Risk: Romagna coast
+![Adriatic Bloom Risk](docs/logo.svg)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21204039.svg)](https://doi.org/10.5281/zenodo.21204039)
 [![CI](https://github.com/antoniorotundo2/adriatic-bloom-risk/actions/workflows/ci.yml/badge.svg)](https://github.com/antoniorotundo2/adriatic-bloom-risk/actions/workflows/ci.yml)

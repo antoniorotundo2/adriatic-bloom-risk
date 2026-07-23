@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Adriatic Bloom Risk logo. Reference as an external file, not inlined
+     raw in markdown, so the CSS animation still plays when GitHub renders
+     it: ![Adriatic Bloom Risk](docs/logo.svg). Colours match the risk and
+     uncertainty legend in webmap/index.html. Respects prefers-reduced-motion.
+     Uses only system fonts (no external font fetch, which an SVG used as
+     an image cannot make). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="118" viewBox="0 0 480 118" role="img" aria-labelledby="abrLogoTitle abrLogoDesc">
+  <title id="abrLogoTitle">Adriatic Bloom Risk</title>
+  <desc id="abrLogoDesc">A wave and bloom mark with a rotating sun-like ring above a four-colour risk strip that slowly brightens one cell at a time, next to the project name</desc>
+  <style>
+    .wave-scroll { animation: scrollBar 4s linear infinite; }
+    .ring-spin { animation: spinBar 6s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { .wave-scroll, .ring-spin, .cell-pulse { animation: none; } }
+    @keyframes scrollBar { from { transform: translateX(0); } to { transform: translateX(-50px); } }
+    @keyframes spinBar { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -8; } }
+    @keyframes cellPulse { 0% { filter: brightness(1); } 15% { filter: brightness(1.15); } 35% { filter: brightness(1); } 100% { filter: brightness(1); } }
+    .cell-pulse { animation: cellPulse 5.6s ease-in-out infinite; }
+    .cell1 { animation-delay: 0s; }
+    .cell2 { animation-delay: 1.4s; }
+    .cell3 { animation-delay: 2.8s; }
+    .cell4 { animation-delay: 4.2s; }
+    .name { font-family: Arial, Helvetica, sans-serif; font-weight: 700; font-size: 30px; fill: #0E2A35; }
+    .tagline { font-family: Arial, Helvetica, sans-serif; font-weight: 400; font-size: 14px; fill: #5B6B6E; }
+  </style>
+  <defs>
+    <clipPath id="abrIconClip">
+      <rect x="9" y="9" width="100" height="100" rx="12"/>
+    </clipPath>
+    <path id="abrWaveTile" d="M0,86 q12.5,-10 25,0 t25,0 V104 H0 Z" fill="#15616D"/>
+  </defs>
+  <rect x="9" y="9" width="100" height="100" rx="12" fill="#F4EFE6"/>
+  <g clip-path="url(#abrIconClip)">
+    <g class="wave-scroll">
+      <use href="#abrWaveTile" x="9"></use>
+      <use href="#abrWaveTile" x="59"></use>
+      <use href="#abrWaveTile" x="109"></use>
+    </g>
+    <rect class="cell-pulse cell1" x="9" y="99" width="25" height="10" fill="#1B7A6E"/>
+    <rect class="cell-pulse cell2" x="34" y="99" width="25" height="10" fill="#5A9B6E"/>
+    <rect class="cell-pulse cell3" x="59" y="99" width="25" height="10" fill="#C9A227"/>
+    <rect class="cell-pulse cell4" x="84" y="99" width="25" height="10" fill="#E8745A"/>
+  </g>
+  <circle cx="59" cy="45" r="10" fill="#E8745A"/>
+  <circle class="ring-spin" cx="59" cy="45" r="16" fill="none" stroke="#E8745A" stroke-width="2.2" stroke-dasharray="4 4"/>
+  <rect x="9" y="9" width="100" height="100" rx="12" fill="none" stroke="#1B2B2E" stroke-width="2"/>
+  <text x="129" y="52" dominant-baseline="central" class="name">Adriatic Bloom Risk</text>
+  <text x="129" y="80" dominant-baseline="central" class="tagline">Romagna coast, bloom risk with quantified uncertainty</text>
+</svg>
