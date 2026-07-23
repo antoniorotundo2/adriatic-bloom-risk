@@ -36,7 +36,7 @@ The study area covers the Romagna coast from Casalborsetti (near the Po delta) t
 
 All data sources are public:
 
-- **Chlorophyll-a:** Copernicus Marine Mediterranean ocean-colour reprocessed product (`cmems_obs-oc_med_bgc-plankton_my_l4-gapfree-multi-1km_P1D`, variable `CHL`), gap-free multi-sensor, 1 km, daily.
+- **Chlorophyll-a:** Copernicus Marine Mediterranean ocean-colour reprocessed product (cmems_obs-oc_med_bgc-plankton_my_l4-gapfree-multi-1km_P1D, variable `CHL`), gap-free multi-sensor, 1 km, daily.
 - **Sea surface temperature:** Copernicus Marine Mediterranean SST L4 reprocessed product (`cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021`, variable `analysed_sst`), ~0.05°, daily.
 - **Wind:** ERA5 single-level 10 m u/v components (Climate Data Store), hourly, aggregated to daily mean wind speed.
 - **Po river discharge:** GloFAS historical reanalysis (`cems-glofas-historical`, variable `dis24`; Early Warning Data Store), daily.
