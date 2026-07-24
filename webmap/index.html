@@ -28,7 +28,8 @@
   }
   header h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
   header .subtitle { font-size: 12.5px; color: #AFC4C8; font-family: var(--font-mono); }
-  header .subtitle + .subtitle::before { content: "· data shown: "; }
+  header #data-coverage::before { content: "· "; }
+  header #data-date::before { content: "· data shown: "; }
   .body { flex: 1; display: flex; min-height: 0; }
   #map { flex: 1; }
   aside {
@@ -62,6 +63,7 @@
   <header>
     <h1>Adriatic Bloom Risk: Romagna coast</h1>
     <span class="subtitle">bloom risk · chlorophyll · uncertainty</span>
+    <span class="subtitle" id="data-coverage"></span>
     <span class="subtitle" id="data-date"></span>
   </header>
   <div class="body">
@@ -143,6 +145,7 @@
   fetch('/api/risk').then(r => r.json()).then(geo => {
     if (geo.features.length) {
       document.getElementById('data-date').textContent = geo.features[0].properties.date;
+      document.getElementById('data-coverage').textContent = `${geo.features.length} coastal cells, Romagna coast`;
     }
     const layer = L.geoJSON(geo, {
       style: f => {
