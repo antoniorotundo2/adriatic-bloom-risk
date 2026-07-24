@@ -125,7 +125,7 @@ Planned web-map polishing, to complete in the refinement phase:
 
 - [x] Show the date of the displayed data on the map.
 - [x] Clarify in the legend that the cells and grid are a demonstrative simplification (not the real transects).
-- Make the header more informative (data period/coverage).
+- [x] Make the header more informative (data period/coverage).
 
 ## Positioning and limitations
 
