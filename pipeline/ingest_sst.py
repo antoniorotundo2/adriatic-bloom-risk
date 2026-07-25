@@ -5,6 +5,7 @@ Run: python pipeline/ingest_sst.py
 """
 
 import os
+
 import copernicusmarine
 
 DATASET_ID = "cmems_SST_MED_SST_L4_REP_OBSERVATIONS_010_021"

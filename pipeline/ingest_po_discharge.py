@@ -11,6 +11,7 @@ accepted on the EWDS site.
 """
 
 import os
+
 import cdsapi
 
 EWDS_URL = "https://ewds.climate.copernicus.eu/api"

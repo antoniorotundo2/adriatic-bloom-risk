@@ -21,15 +21,15 @@ Run (after `make features` and with the Step A-D data already computable):
 import os
 
 import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import pandas as pd
-from matplotlib.patches import FancyBboxPatch
 
+matplotlib.use("Agg")
 import a_transparent_estimate as step_a
 import b_fixed_effects as step_b
 import c_dowhy_estimate as step_c
 import d_causal_forest as step_d
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.patches import FancyBboxPatch
 
 FEATURES_CSV = "data/processed/features.csv"
 OUT_DIR = "docs/figures"
@@ -69,7 +69,7 @@ def fig_causal_effects():
     from the sensitivity analysis's own standard error, since both operate
     on the same underlying backdoor.linear_regression fit."""
     _, m_naive, m_adj = step_a.fit()
-    _, pooled, fe_model, fe_model_clustered = step_b.fit()
+    _, _pooled, fe_model, fe_model_clustered = step_b.fit()
     _, _, _, estimate_c, sensitivity_c = step_c.fit()
 
     rows = []
@@ -180,14 +180,14 @@ def fig_architecture():
     edges = [("A", "B"), ("B", "C"), ("C", "D"), ("D", "E"), ("E", "F"), ("B", "G")]
     for src, dst in edges:
         xs, ys, _, ws, hs = boxes[src]
-        xd, yd, _, wd, hd = boxes[dst]
+        xd, yd, _, _wd, hd = boxes[dst]
         if src == "B" and dst == "G":
             start, end, rad = (xs + ws / 2, ys - 0.1), (xd, yd + hd / 2), -0.25
         else:
             start, end, rad = (xs, ys - hs / 2), (xd, yd + hd / 2), 0
         ax.annotate("", xy=end, xytext=start,
-                    arrowprops=dict(arrowstyle="-|>", color="#333333", lw=1.3,
-                                     connectionstyle=f"arc3,rad={rad}"))
+                    arrowprops={"arrowstyle": "-|>", "color": "#333333", "lw": 1.3,
+                                "connectionstyle": f"arc3,rad={rad}"})
 
     fig.tight_layout()
     fig.savefig(f"{OUT_DIR}/architecture_diagram.png", dpi=150)

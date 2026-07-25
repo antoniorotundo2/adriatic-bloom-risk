@@ -30,7 +30,7 @@ def test_health():
 def test_risk_endpoint_shape():
     try:
         response = client.get("/api/risk")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         pytest.skip(f"database not available in this environment: {exc}")
 
     assert response.status_code == 200

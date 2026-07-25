@@ -219,7 +219,7 @@ def refresh_map(engine, chl_df):
                         chl_mean = EXCLUDED.chl_mean, source = EXCLUDED.source;
                 """), {"cid": int(r.cell_id), "ts": r.ts.date(), "chl": float(r.chl)})
         print("Map: chlorophyll_obs refreshed with the latest cleaned values.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"(Map refresh skipped: {e})")
 
 

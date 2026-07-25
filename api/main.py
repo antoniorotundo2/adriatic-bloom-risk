@@ -3,9 +3,8 @@ SIT API: serves bloom-risk predictions as GeoJSON, always with a point estimate
 plus an uncertainty interval (never a bare number).
 """
 
-from datetime import date
-from typing import Optional
 import os
+from datetime import date
 
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
@@ -27,7 +26,7 @@ def health():
 
 
 @app.get("/api/risk")
-def get_risk(ts: Optional[date] = Query(None, description="Prediction date (default: most recent available)")):
+def get_risk(ts: date | None = Query(None, description="Prediction date (default: most recent available)")):  # noqa: B008
     """
     Return a GeoJSON FeatureCollection with the bloom risk per coastal cell.
     Every feature ALWAYS carries three linked values: risk_estimate (point
@@ -128,7 +127,7 @@ def get_chlorophyll():
     try:
         with engine.connect() as conn:
             rows = conn.execute(query).mappings().all()
-    except Exception:
+    except Exception:  # noqa: BLE001
         # Table not created yet (ingestion not run): no real data available.
         return {"type": "FeatureCollection", "features": []}
 

@@ -9,6 +9,7 @@ Run:           python pipeline/ingest_satellite.py
 """
 
 import os
+
 import copernicusmarine
 
 DATASET_ID = "cmems_obs-oc_med_bgc-plankton_my_l4-gapfree-multi-1km_P1D"
