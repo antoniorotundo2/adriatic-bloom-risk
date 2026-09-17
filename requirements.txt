@@ -28,3 +28,4 @@ statsmodels>=0.14
 dowhy>=0.12
 econml>=0.16       # Step C: heterogeneity / non-stationarity (CausalForestDML)
 matplotlib>=3.9    # causal/plots.py: report figures
+openpyxl>=3.1      # causal/plots.py: reads the ARPAE in-situ xlsx

@@ -41,7 +41,7 @@ All data sources are public:
 - **Wind:** ERA5 single-level 10 m u/v components (Climate Data Store), hourly, aggregated to daily mean wind speed.
 - **Po river discharge:** GloFAS historical reanalysis (`cems-glofas-historical`, variable `dis24`; Early Warning Data Store), daily.
 
-In-situ chemical-physical series from ARPAE-Daphne (temperature, chlorophyll-a, transparency at 500 m stations) were requested through the formal environmental-information access procedure but are not yet integrated; when available, they will serve as ground truth for satellite calibration.
+In-situ chemical-physical series from ARPAE-Daphne (Struttura Oceanografica Daphne), temperature, transparency and chlorophyll-a at the same 500 m stations, were obtained through the formal environmental-information access procedure (D.Lgs. 195/2005) for January-September 2025, covering all five cells. This period does not overlap the 2018-2023 satellite record used elsewhere in this report, so it is used here as an independent spatial check (Section 5) rather than a date-matched calibration; a full calibration is future work (Section 7), pending a satellite re-ingestion for 2025.
 
 ## 4. Methods
 
@@ -106,6 +106,12 @@ The year-by-year estimates show no interpretable trend (Figure 5): confidence in
 
 **Figure 5.** Temporal heterogeneity of the Po effect: estimated effect by year, with 90% confidence intervals (causal forest, Step D).
 
+**In-situ validation.** The ARPAE-Daphne in-situ series (Section 3), independent of the satellite record in both period (2025 vs 2018-2023) and measurement method (in-situ fluorimetry vs satellite ocean-colour retrieval), reproduces the same qualitative Po-delta gradient: median chlorophyll-a is highest at Casalborsetti and lowest at Cattolica in both series (Figure 6). Lido Adriano and Cesenatico also line up in the same order. Rimini is the exception: the in-situ median (3.61 µg/l) is higher than Cesenatico's, breaking the otherwise monotonic decline that the satellite record shows; with only 24 in-situ samples per cell over a single nine-month window, this is read as sampling noise rather than a revision of the gradient, but it is reported rather than smoothed over.
+
+![In-situ vs satellite median chlorophyll-a per coastal cell](figures/insitu_validation.png)
+
+**Figure 6.** Median chlorophyll-a per coastal cell: satellite record (2018-2023) vs ARPAE-Daphne in-situ series (January-September 2025), an independent check of the Po-delta gradient.
+
 ## 6. Discussion and limitations
 
 The results are internally coherent: a driver identified as predictively important (lagged Po) is also the treatment whose causal effect survives adjustment and refutation. However, several limitations bound the interpretation and are stated explicitly.
@@ -114,7 +120,7 @@ The results are internally coherent: a driver identified as predictively importa
 - **Temporal autocorrelation.** Discharge and chlorophyll are autocorrelated series; standard confidence intervals are consequently too narrow. Point estimates are more reliable than their stated precision. Quantified for (B): clustering standard errors by cell widens its 95% CI from (+2.13, +2.54) to (+1.87, +2.81), +131% wider, without changing the qualitative conclusion. With only 5 clusters this clustered interval is itself approximate (few-cluster asymptotics are unreliable below ~20–30 clusters), so it is read as a directional confirmation, not a precise replacement.
 - **Scale and form.** Five demonstrative cells over six seasons, with mostly linear causal specifications, make the average-effect estimates indicative rather than definitive; the causal-forest heterogeneity results (Section 5) are more exploratory still, given the small number of distinct spatial and temporal units and the absence of a formal refutation test for that method.
 - **SST data coverage (fixed).** The nearest-pixel SST retrieval used to be valid for only 2 of the 5 cells across all six seasons in this reprocessed product; the other three consistently fell on a masked/land pixel, a systematic issue rather than missingness at random. The retrieval now searches a small radius around each cell centroid for the nearest pixel that is actually valid (Section 4.2), restoring full 5-cell coverage; the results in Section 5 are from the pipeline re-run after this fix, and the earlier gap between (A)/(C) and (B) (Section 5) turned out to be substantially a symptom of this bug rather than a real methodological discrepancy.
-- **Satellite retrieval.** Near-shore Case-2 waters tend to bias satellite chlorophyll upward; in-situ calibration (pending ARPAE data) would mitigate this.
+- **Satellite retrieval.** Near-shore Case-2 waters tend to bias satellite chlorophyll upward. The ARPAE-Daphne in-situ series (Section 5) now provides an independent spatial check and confirms the same gradient, but a proper bias calibration needs date-matched pairs, which requires extending the satellite ingestion to 2025 (Section 7); that has not been done yet.
 - **Prediction.** The predictive value at daily resolution is limited relative to persistence; the system's strength is the operational architecture, validated uncertainty, and causal framing rather than forecast accuracy.
 
 Accordingly, results are reported as *estimated and robust under the stated assumptions*, not as *demonstrated causal effects*.
@@ -123,11 +129,11 @@ Accordingly, results are reported as *estimated and robust under the stated assu
 
 This report presents an integrated, reproducible system for coastal bloom-risk estimation on the Romagna coast, combining open remote-sensing and reanalysis data, an uncertainty-aware predictive model, and an explicit causal analysis of Po influence. The main value is *engineering and methodological transparency at fine scale*, not *a new scientific result*.
 
-**Future work:** integrate ARPAE-Daphne in-situ series for calibration and functional-group labels; extend the record to more seasons to strengthen both prediction and causal estimation, and to give the heterogeneity analysis (Section 5) enough distinct spatial and temporal units for a less exploratory reading; and refine the demonstrative grid toward the official transects.
+**Future work:** extend the satellite and reanalysis ingestion to 2025 to enable a date-matched calibration against the now-available ARPAE-Daphne in-situ series (Section 5), beyond the spatial-only check performed here; obtain further ARPAE-Daphne functional-group labels; extend the record to more seasons to strengthen both prediction and causal estimation, and to give the heterogeneity analysis (Section 5) enough distinct spatial and temporal units for a less exploratory reading; and refine the demonstrative grid toward the official transects.
 
 ## Data and code availability
 
-Source code: https://github.com/antoniorotundo2/adriatic-bloom-risk (MIT license). Raw data are not redistributed; they are reproducible from the ingestion scripts using free Copernicus Marine, Climate Data Store and Early Warning Data Store accounts. In-situ data remain subject to ARPAE-Daphne terms of use.
+Source code: https://github.com/antoniorotundo2/adriatic-bloom-risk (MIT license). Raw data are not redistributed; the satellite and reanalysis sources are reproducible from the ingestion scripts using free Copernicus Marine, Climate Data Store and Early Warning Data Store accounts. The ARPAE-Daphne in-situ series (temperature, transparency, chlorophyll-a; Section 3) was obtained under D.Lgs. 195/2005 from the Struttura Oceanografica Daphne and is not redistributed here, per the terms of that grant; it is available on request directly from ARPAE. Any study or publication using it must credit Arpae - Agenzia regionale per la prevenzione, l'ambiente e l'energia dell'Emilia-Romagna, Struttura Oceanografica Daphne, and a copy of the resulting product must be sent to that office, as this report does.
 
 ## How to cite
 

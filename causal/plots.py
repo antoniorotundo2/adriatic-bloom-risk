@@ -13,6 +13,9 @@ script prints.
   4. Temporal heterogeneity (Step D): effect by year.
   5. System architecture diagram (static redraw of the Mermaid flowchart in
      the main README, for the PDF/Zenodo export where Mermaid doesn't render).
+  6. In-situ validation: satellite (2018-2023) vs ARPAE-Daphne in-situ
+     (Jan-Sep 2025) median chlorophyll-a per cell, an independent spatial
+     check of the Po gradient with a different measurement method.
 
 Run (after `make features` and with the Step A-D data already computable):
   python causal/plots.py
@@ -28,10 +31,12 @@ import b_fixed_effects as step_b
 import c_dowhy_estimate as step_c
 import d_causal_forest as step_d
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from matplotlib.patches import FancyBboxPatch
 
 FEATURES_CSV = "data/processed/features.csv"
+INSITU_XLSX = "data/raw/arpae_insitu_2025.xlsx"
 OUT_DIR = "docs/figures"
 
 CELL_LABELS = {
@@ -41,6 +46,7 @@ CELL_LABELS = {
     "ri_05": "Rimini",
     "ca_05": "Cattolica",
 }
+CELL_CODES_BY_LABEL = {v: k for k, v in CELL_LABELS.items()}
 
 
 def _style_ax(ax):
@@ -61,6 +67,38 @@ def fig_chlorophyll_gradient():
     _style_ax(ax)
     fig.tight_layout()
     fig.savefig(f"{OUT_DIR}/chlorophyll_gradient.png", dpi=150)
+    plt.close(fig)
+
+
+def fig_insitu_validation():
+    """Independent spatial check: does the in-situ ARPAE-Daphne series show
+    the same Po-delta gradient as the satellite record, on a different period
+    and with a different measurement method? mg/m3 and ug/l are numerically
+    equal, so no unit conversion is needed between the two sources."""
+    sat = pd.read_csv(FEATURES_CSV)
+    sat_g = sat.groupby("cell_code").agg(chl=("chl", "median"), dist_po_km=("dist_po_km", "first"))
+
+    insitu = pd.read_excel(INSITU_XLSX, sheet_name="Dati_2025_500m")
+    insitu.columns = [" ".join(c.split()) for c in insitu.columns]
+    insitu["cell_code"] = insitu["Località"].map(CELL_CODES_BY_LABEL)
+    insitu_g = insitu.groupby("cell_code")["Chl-a fluorim µg_l"].median()
+
+    g = sat_g.join(insitu_g.rename("chl_insitu")).sort_values("dist_po_km")
+    labels = [CELL_LABELS[c] for c in g.index]
+
+    x = np.arange(len(labels))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(7.5, 4.5))
+    ax.bar(x - width / 2, g["chl"], width, label="Satellite, median 2018-2023", color="#2E86AB")
+    ax.bar(x + width / 2, g["chl_insitu"], width, label="In-situ ARPAE-Daphne, median Jan-Sep 2025", color="#A23B72")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Median chlorophyll-a (mg/m³ = µg/l)")
+    ax.set_title("Po-delta gradient: satellite vs in-situ, independent check")
+    ax.legend(fontsize=8)
+    _style_ax(ax)
+    fig.tight_layout()
+    fig.savefig(f"{OUT_DIR}/insitu_validation.png", dpi=150)
     plt.close(fig)
 
 
@@ -197,22 +235,25 @@ def fig_architecture():
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
-    print("Figure 1/5: system architecture...")
+    print("Figure 1/6: system architecture...")
     fig_architecture()
 
-    print("Figure 2/5: chlorophyll gradient...")
+    print("Figure 2/6: chlorophyll gradient...")
     fig_chlorophyll_gradient()
 
-    print("Figure 3/5: causal effect comparison...")
+    print("Figure 3/6: causal effect comparison...")
     fig_causal_effects()
 
-    print("Figure 4/5 & 5/5: heterogeneity (fitting the causal forest)...")
+    print("Figure 4/6 & 5/6: heterogeneity (fitting the causal forest)...")
     df = step_d.load()
     cells, years = step_d.fit_and_get_effects(df)
     fig_spatial_heterogeneity(cells)
     fig_temporal_heterogeneity(years)
 
-    print(f"\nWrote 5 figures to {OUT_DIR}/")
+    print("Figure 6/6: in-situ validation...")
+    fig_insitu_validation()
+
+    print(f"\nWrote 6 figures to {OUT_DIR}/")
 
 
 if __name__ == "__main__":

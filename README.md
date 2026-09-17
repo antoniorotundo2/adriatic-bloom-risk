@@ -94,10 +94,12 @@ See `causal/README.md` for the DAG, results and assumptions.
 
 Satellite data (Sentinel, Copernicus, ERA5) and Po discharge are public and are
 not stored in the repository (they are reproduced by the scripts in `pipeline/`).
-In-situ phytoplankton data from the ARPAE-Daphne monitoring network, if used, is
-requested under the Italian environmental-information act (D.Lgs. 195/2005) and
-is **not redistributed** here pending licence and terms of use. Anyone can
-request it from the ARPAE-Daphne oceanographic unit.
+In-situ chemical-physical data (temperature, transparency, chlorophyll-a) for
+the five cells, January-September 2025, was obtained from the ARPAE-Daphne
+oceanographic unit under the Italian environmental-information act (D.Lgs.
+195/2005) and used for the independent validation in `docs/technical-report.md`
+(Section 5). It is **not redistributed** here, per the terms of that grant.
+Anyone can request it directly from the ARPAE-Daphne oceanographic unit.
 
 ## Development
 
